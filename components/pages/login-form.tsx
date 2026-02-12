@@ -1,27 +1,28 @@
 "use client";
 
-import type React from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { TypographyH3, TypographyMuted } from "../typography";
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
+import type React from "react"
+import { useState } from "react"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { z } from "zod"
+import { TypographyH3, TypographyMuted } from "../typography"
+import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
+} from "@/components/ui/card"
 import {
   Field,
   FieldDescription,
   FieldGroup,
   FieldLabel,
-} from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
-import Link from "next/link";
+} from "@/components/ui/field"
+import { Input } from "@/components/ui/input"
+import Link from "next/link"
 
 // Zod schema that defines the login form shape and validation rules.
 // This keeps the form contract centralized and type-safe.
@@ -30,16 +31,17 @@ const loginFormSchema = z.object({
   password: z
     .string()
     .min(8, { message: "Your password should be at least 8 characters long" }),
-});
+})
 
-type LoginFormValues = z.infer<typeof loginFormSchema>;
+type LoginFormValues = z.infer<typeof loginFormSchema>
 
 /**
  * LoginForm is a client component that renders the email/password login UI.
  * It uses react-hook-form + Zod for validation and exposes a simple div-style API.
  */
 export function LoginForm(props: React.HTMLAttributes<HTMLDivElement>) {
-  const { className, ...rest } = props;
+  const { className, ...rest } = props
+  const [submitError, setSubmitError] = useState<string | null>(null)
 
   // Initialize react-hook-form with the Zod resolver to keep validation logic
   // on the client in sync with our schema.
@@ -53,11 +55,29 @@ export function LoginForm(props: React.HTMLAttributes<HTMLDivElement>) {
       email: "",
       password: "",
     },
-  });
+  })
 
-  function handleLoginSubmit(values: LoginFormValues) {
-    // This is where the server action / Supabase sign-in flow will be wired in.
-    console.log("login submit", values);
+  async function handleLoginSubmit(values: LoginFormValues) {
+    setSubmitError(null)
+
+    const response = await fetch("/api/auth/sign-in", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(values),
+    })
+
+    if (!response.ok) {
+      const data = (await response.json().catch(() => null)) as
+        | { message?: string }
+        | null
+
+      setSubmitError(
+        data?.message ?? "Something went wrong while signing you in."
+      )
+      return
+    }
   }
 
   return (
@@ -121,6 +141,14 @@ export function LoginForm(props: React.HTMLAttributes<HTMLDivElement>) {
                 )}
               </Field>
 
+              {submitError ? (
+                <Field>
+                  <FieldDescription className="text-sm text-destructive">
+                    {submitError}
+                  </FieldDescription>
+                </Field>
+              ) : null}
+
               {/* Primary submit button and link to the registration screen */}
               <Field>
                 <Button type="submit" disabled={isSubmitting}>
@@ -129,7 +157,7 @@ export function LoginForm(props: React.HTMLAttributes<HTMLDivElement>) {
 
                 <FieldDescription className="text-center">
                   Don&apos;t have an account?{" "}
-                  <Link href="/register">Create an account</Link>
+                  <Link href="/register">Register</Link>
                 </FieldDescription>
               </Field>
             </FieldGroup>
@@ -137,5 +165,5 @@ export function LoginForm(props: React.HTMLAttributes<HTMLDivElement>) {
         </CardContent>
       </Card>
     </div>
-  );
+  )
 }

@@ -33,16 +33,22 @@ The app is designed to mirror the backend domain model (pantry items, recipes, s
   - Email + password form
   - Zod + React Hook Form validation
   - Shadcn UI components for layout and fields
+  - Supabase-backed login via `/api/auth/sign-in` and `signInWithEmailPasswordAction`
 - Registration page at `/register` with:
   - Name, email, password, and confirm password fields
   - Shared typography and form primitives
+  - Server action-powered signup using `signUpFormAction` and Supabase auth
+- Auth proxy configured with `proxy.ts` and `lib/supabase/proxy.ts` using `supabase.auth.getClaims()` to keep sessions in sync
 - Global layout with Nunito Sans font and Tailwind CSS styling
 - Shared typography and UI primitives (`components/ui` and `components/typography`)
+- Authenticated dashboard shell under `/dashboard`:
+  - `app/dashboard/layout.tsx` enforces Supabase auth and renders a common dashboard shell
+  - `app/dashboard/page.tsx` shows the pantry overview dashboard using `DashboardHeader`, `PantryStatCard`, and copy from `lib/copy/pantry-dashboard`
 
 **Planned**
 
-- Wire login and registration to Supabase auth using server actions and `next-safe-action`
-- Authenticated app shell for pantry items, recipes, shopping lists, and preferences
+- Migrate auth actions to `next-safe-action` for stronger type safety
+- Expand the dashboard with real pantry data (items, recipes, shopping lists, preferences)
 - Household switching and sharing flows
 
 ### Tech Stack
@@ -101,24 +107,43 @@ Relevant frontend directories:
 
 ```text
 app/
-  layout.tsx          # Root layout, global font + shell
+  layout.tsx              # Root layout, global font + shell
   (auth)/
-    page.tsx          # Login route (`/`)
+    page.tsx              # Login route (`/`)
     register/
-      page.tsx        # Registration route (`/register`)
+      page.tsx            # Registration route (`/register`)
+  dashboard/
+    layout.tsx            # Auth-protected dashboard shell (requires Supabase user)
+    page.tsx              # Pantry overview dashboard
+    settings/
+      page.tsx            # Placeholder for dashboard settings
 
 components/
+  layouts/
+    dashboard-header.tsx  # Shared dashboard header (title, subtitle, user, primary action)
+  dashboard/
+    pantry-stat-card.tsx  # Reusable stat card for pantry metrics
   pages/
-    login-form.tsx    # Login form (client component, RHF + Zod)
-    signup-form.tsx   # Signup form UI
-  typography.tsx      # Shared typography primitives (H1–H4, body, etc.)
+    login-form.tsx        # Login form (client component, RHF + Zod)
+    signup-form.tsx       # Signup form UI + server action wiring
+  typography.tsx          # Shared typography primitives (H1–H4, body, etc.)
   ui/
-    button.tsx        # Button primitive (variants + sizes)
-    card.tsx          # Card layout primitives
-    input.tsx         # Styled input field
-    field.tsx         # Higher-level form layout + error helpers
-    label.tsx         # Accessible label wrapper
-    separator.tsx     # Horizontal/vertical separator
+    button.tsx            # Button primitive (variants + sizes)
+    card.tsx              # Card layout primitives
+    input.tsx             # Styled input field
+    field.tsx             # Higher-level form layout + error helpers
+    label.tsx             # Accessible label wrapper
+    separator.tsx         # Horizontal/vertical separator
+
+lib/
+  supabase/
+    client.ts             # Browser Supabase client
+    server.ts             # Server Supabase client for RSC/actions
+    proxy.ts              # Proxy helper that calls supabase.auth.getClaims()
+  copy/
+    pantry-dashboard.ts   # Centralized copy for pantry dashboard text
+
+proxy.ts                  # Next.js proxy entry that calls updateSession and defines the matcher
 ```
 
 This structure follows Next.js App Router conventions and keeps auth, shared components, and UI primitives clearly separated.
@@ -128,9 +153,14 @@ This structure follows Next.js App Router conventions and keeps auth, shared com
 - `/` – Login page
   - Renders brand header and `LoginForm`
   - Validates email and password using Zod schema
+  - Calls `/api/auth/sign-in` which delegates to `signInWithEmailPasswordAction`
 - `/register` – Registration page
   - Reuses brand header
   - Renders `SignupForm` with name, email, password, and confirm password fields
+  - Submits via Next.js `<Form />` and `useActionState` to `signUpFormAction`
+- `/dashboard` – Authenticated pantry overview
+  - Protected by Supabase via `app/dashboard/layout.tsx` and the global proxy
+  - Shows dashboard header, high-level stats, expiring items, and recent activity
 
 Additional routes for pantry items, recipes, and shopping lists will be added under `app/` as the domain UI grows.
 
@@ -140,16 +170,20 @@ Current behavior:
 
 - Login form:
   - Uses React Hook Form with Zod for client-side validation
-  - Calls a local handler (placeholder for Supabase-backed auth)
+  - Calls a JSON API route at `/api/auth/sign-in`
+  - API route uses `signInWithEmailPasswordAction` which validates credentials with Zod and calls `supabase.auth.signInWithPassword`
 - Signup form:
   - Collects basic profile and credential information
-  - Placeholder submit handler, ready to be wired to a server action
+  - Uses `<Form />` + `useActionState` to call `signUpFormAction`
+  - Server action validates input with Zod and calls `supabase.auth.signUp`
+- Supabase proxy:
+  - `proxy.ts` routes all relevant requests through `updateSession` in `lib/supabase/proxy.ts`
+  - Proxy uses `supabase.auth.getClaims()` to keep auth tokens refreshed and safe to read in server components
 
 Planned behavior:
 
-- Use `next-safe-action` to wrap server actions for login/signup
-- Integrate with Supabase SSR helpers based on official guidance
-- Redirect authenticated users into an application shell for pantry management
+- Use `next-safe-action` to wrap server actions for login/signup and future mutations
+- Extend the dashboard shell to include pantry items, recipes, shopping lists, and household management
 
 ### Development Guidelines
 

@@ -1,4 +1,8 @@
-import type React from "react"
+"use client"
+
+import * as React from "react"
+import Form from "next/form"
+import Link from "next/link"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -16,15 +20,28 @@ import {
   FieldLabel,
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
-import { TypographyH3, TypographyMuted } from "../typography"
-import Link from "next/link"
+import {
+  TypographyH3,
+  TypographyMuted,
+  TypographySmall,
+} from "../typography"
+import {
+  type AuthActionResult,
+  INITIAL_AUTH_ACTION_RESULT,
+  signUpFormAction,
+} from "@/app/(auth)/actions"
 
 /**
  * SignupForm renders the registration fields shown on the `/register` route.
- * Validation will be handled by the surrounding server action once Supabase auth is wired in.
+ * It uses a server action to submit email + password directly to Supabase.
  */
 export function SignupForm(props: React.ComponentProps<"div">) {
   const { className, ...rest } = props
+
+  const [formState, formAction, pending] = React.useActionState<
+    AuthActionResult,
+    FormData
+  >(signUpFormAction, INITIAL_AUTH_ACTION_RESULT)
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...rest}>
@@ -42,12 +59,17 @@ export function SignupForm(props: React.ComponentProps<"div">) {
           </div>
         </CardHeader>
         <CardContent>
-          <form>
+          <Form action={formAction}>
             <FieldGroup>
-              {/* Basic profile information */}
+              {/* Basic profile information (not sent to Supabase yet) */}
               <Field>
                 <FieldLabel htmlFor="name">Full Name</FieldLabel>
-                <Input id="name" type="text" placeholder="John Doe" required />
+                <Input
+                  id="name"
+                  type="text"
+                  placeholder="John Doe"
+                  autoComplete="name"
+                />
               </Field>
 
               {/* Account credentials */}
@@ -55,14 +77,24 @@ export function SignupForm(props: React.ComponentProps<"div">) {
                 <FieldLabel htmlFor="email">Email</FieldLabel>
                 <Input
                   id="email"
+                  name="email"
                   type="email"
                   placeholder="m@example.com"
+                  autoComplete="email"
                   required
+                  disabled={pending}
                 />
               </Field>
               <Field>
                 <FieldLabel htmlFor="password">Password</FieldLabel>
-                <Input id="password" type="password" required />
+                <Input
+                  id="password"
+                  name="password"
+                  type="password"
+                  autoComplete="new-password"
+                  required
+                  disabled={pending}
+                />
                 <FieldDescription>
                   Must be at least 8 characters long.
                 </FieldDescription>
@@ -71,23 +103,49 @@ export function SignupForm(props: React.ComponentProps<"div">) {
                 <FieldLabel htmlFor="confirm-password">
                   Confirm Password
                 </FieldLabel>
-                <Input id="confirm-password" type="password" required />
+                <Input
+                  id="confirm-password"
+                  type="password"
+                  autoComplete="new-password"
+                  required
+                  disabled={pending}
+                />
                 <FieldDescription>
                   Please confirm your password.
                 </FieldDescription>
               </Field>
 
+              {formState.message ? (
+                <Field>
+                  <FieldDescription className="text-sm text-destructive">
+                    {formState.message}
+                  </FieldDescription>
+                </Field>
+              ) : null}
+
+              {formState.ok ? (
+                <Field>
+                  <FieldDescription className="text-sm text-emerald-600 dark:text-emerald-400">
+                    <TypographySmall>
+                      Account created successfully. You can now log in.
+                    </TypographySmall>
+                  </FieldDescription>
+                </Field>
+              ) : null}
+
               {/* Submit action and link back to login */}
               <FieldGroup>
                 <Field>
-                  <Button type="submit">Create Account</Button>
+                  <Button type="submit" disabled={pending}>
+                    {pending ? "Creating account..." : "Create Account"}
+                  </Button>
                   <FieldDescription className="px-6 text-center">
                     Already have an account? <Link href="/">Login</Link>
                   </FieldDescription>
                 </Field>
               </FieldGroup>
             </FieldGroup>
-          </form>
+          </Form>
         </CardContent>
       </Card>
       <FieldDescription className="px-6 text-center">
