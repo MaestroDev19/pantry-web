@@ -1,6 +1,6 @@
 ## Pantry Web App
 
-Next.js 14 App Router frontend for the Pantry application. This project provides the authenticated web experience for managing household pantries, built to pair with the Pantry FastAPI + Supabase backend.
+Next.js 16 App Router frontend for the Pantry application. This project provides the authenticated web experience for managing household pantries, built to pair with the Pantry FastAPI + Supabase backend.
 
 ### Table of Contents
 
@@ -33,17 +33,20 @@ The app is designed to mirror the backend domain model (pantry items, recipes, s
   - Email + password form
   - Zod + React Hook Form validation
   - Shadcn UI components for layout and fields
-  - Supabase-backed login via `/api/auth/sign-in` and `signInWithEmailPasswordAction`
+  - Supabase-backed login via server action `signInWithEmailPasswordAction` (no API route)
 - Registration page at `/register` with:
-  - Name, email, password, and confirm password fields
+  - Name, email, password fields
   - Shared typography and form primitives
   - Server action-powered signup using `signUpFormAction` and Supabase auth
+- Auth types and initial state in `app/(auth)/auth-types.ts`; server actions in `app/(auth)/actions.ts`
+- Auth confirmation route at `app/auth/confirm/route.ts` for email verification
 - Auth proxy configured with `proxy.ts` and `lib/supabase/proxy.ts` using `supabase.auth.getClaims()` to keep sessions in sync
 - Global layout with Nunito Sans font and Tailwind CSS styling
 - Shared typography and UI primitives (`components/ui` and `components/typography`)
 - Authenticated dashboard shell under `/dashboard`:
   - `app/dashboard/layout.tsx` enforces Supabase auth and renders a common dashboard shell
   - `app/dashboard/page.tsx` shows the pantry overview dashboard using `DashboardHeader`, `PantryStatCard`, and copy from `lib/copy/pantry-dashboard`
+- Hook `hooks/use-supabase-user.ts` for client-side user state
 
 **Planned**
 
@@ -53,7 +56,7 @@ The app is designed to mirror the backend domain model (pantry items, recipes, s
 
 ### Tech Stack
 
-- **Framework**: Next.js 14 App Router (React Server Components first)
+- **Framework**: Next.js 16 App Router (React Server Components first)
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS v4
 - **UI Components**: shadcn/ui-style primitives, Radix UI, custom `components/ui/*`
@@ -109,9 +112,14 @@ Relevant frontend directories:
 app/
   layout.tsx              # Root layout, global font + shell
   (auth)/
+    actions.ts            # Server actions: signIn, signUp, signUpFormAction
+    auth-types.ts         # AuthActionResult type and INITIAL_AUTH_ACTION_RESULT
     page.tsx              # Login route (`/`)
     register/
       page.tsx            # Registration route (`/register`)
+  auth/
+    confirm/
+      route.ts            # Auth confirmation (e.g. email verification)
   dashboard/
     layout.tsx            # Auth-protected dashboard shell (requires Supabase user)
     page.tsx              # Pantry overview dashboard
@@ -124,8 +132,8 @@ components/
   dashboard/
     pantry-stat-card.tsx  # Reusable stat card for pantry metrics
   pages/
-    login-form.tsx        # Login form (client component, RHF + Zod)
-    signup-form.tsx       # Signup form UI + server action wiring
+    login-form.tsx        # Login form (client component, RHF + Zod, calls signInWithEmailPasswordAction)
+    signup-form.tsx       # Signup form UI + useActionState(signUpFormAction)
   typography.tsx          # Shared typography primitives (H1–H4, body, etc.)
   ui/
     button.tsx            # Button primitive (variants + sizes)
@@ -134,6 +142,11 @@ components/
     field.tsx             # Higher-level form layout + error helpers
     label.tsx             # Accessible label wrapper
     separator.tsx         # Horizontal/vertical separator
+    sonner.tsx            # Toast component (Sonner)
+    toaster.tsx           # Toaster provider
+
+hooks/
+  use-supabase-user.ts    # Client hook for Supabase user state
 
 lib/
   supabase/
@@ -153,10 +166,10 @@ This structure follows Next.js App Router conventions and keeps auth, shared com
 - `/` – Login page
   - Renders brand header and `LoginForm`
   - Validates email and password using Zod schema
-  - Calls `/api/auth/sign-in` which delegates to `signInWithEmailPasswordAction`
+  - Submits via `signInWithEmailPasswordAction` server action (no API route)
 - `/register` – Registration page
   - Reuses brand header
-  - Renders `SignupForm` with name, email, password, and confirm password fields
+  - Renders `SignupForm` with name, email, and password fields
   - Submits via Next.js `<Form />` and `useActionState` to `signUpFormAction`
 - `/dashboard` – Authenticated pantry overview
   - Protected by Supabase via `app/dashboard/layout.tsx` and the global proxy
@@ -170,10 +183,10 @@ Current behavior:
 
 - Login form:
   - Uses React Hook Form with Zod for client-side validation
-  - Calls a JSON API route at `/api/auth/sign-in`
-  - API route uses `signInWithEmailPasswordAction` which validates credentials with Zod and calls `supabase.auth.signInWithPassword`
+  - Builds `FormData` from values and calls `signInWithEmailPasswordAction` server action directly
+  - Server action validates with Zod and calls `supabase.auth.signInWithPassword`; on success redirects to `/dashboard`
 - Signup form:
-  - Collects basic profile and credential information
+  - Collects name, email, and password
   - Uses `<Form />` + `useActionState` to call `signUpFormAction`
   - Server action validates input with Zod and calls `supabase.auth.signUp`
 - Supabase proxy:

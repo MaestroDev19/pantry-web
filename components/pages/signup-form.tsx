@@ -3,6 +3,7 @@
 import * as React from "react"
 import Form from "next/form"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -28,8 +29,8 @@ import {
 import {
   type AuthActionResult,
   INITIAL_AUTH_ACTION_RESULT,
-  signUpFormAction,
-} from "@/app/(auth)/actions"
+} from "@/app/(auth)/auth-types"
+import { signUpFormAction } from "@/app/(auth)/actions"
 
 /**
  * SignupForm renders the registration fields shown on the `/register` route.
@@ -37,11 +38,16 @@ import {
  */
 export function SignupForm(props: React.ComponentProps<"div">) {
   const { className, ...rest } = props
+  const router = useRouter()
 
   const [formState, formAction, pending] = React.useActionState<
     AuthActionResult,
     FormData
   >(signUpFormAction, INITIAL_AUTH_ACTION_RESULT)
+
+  React.useEffect(() => {
+    if (formState.ok) router.push("/dashboard")
+  }, [formState.ok, router])
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...rest}>
@@ -63,12 +69,15 @@ export function SignupForm(props: React.ComponentProps<"div">) {
             <FieldGroup>
               {/* Basic profile information (not sent to Supabase yet) */}
               <Field>
-                <FieldLabel htmlFor="name">Full Name</FieldLabel>
+                <FieldLabel htmlFor="full_name">Full Name</FieldLabel>
                 <Input
-                  id="name"
+                  id="full_name"
+                  name="full_name"
                   type="text"
                   placeholder="John Doe"
                   autoComplete="name"
+                  required
+                  disabled={pending}
                 />
               </Field>
 

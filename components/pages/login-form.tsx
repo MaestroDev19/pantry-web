@@ -5,6 +5,8 @@ import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
+import { useRouter } from "next/navigation"
+import { signInWithEmailPasswordAction } from "@/app/(auth)/actions"
 import { TypographyH3, TypographyMuted } from "../typography"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -42,6 +44,7 @@ type LoginFormValues = z.infer<typeof loginFormSchema>
 export function LoginForm(props: React.HTMLAttributes<HTMLDivElement>) {
   const { className, ...rest } = props
   const [submitError, setSubmitError] = useState<string | null>(null)
+  const router = useRouter()
 
   // Initialize react-hook-form with the Zod resolver to keep validation logic
   // on the client in sync with our schema.
@@ -59,25 +62,15 @@ export function LoginForm(props: React.HTMLAttributes<HTMLDivElement>) {
 
   async function handleLoginSubmit(values: LoginFormValues) {
     setSubmitError(null)
-
-    const response = await fetch("/api/auth/sign-in", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(values),
-    })
-
-    if (!response.ok) {
-      const data = (await response.json().catch(() => null)) as
-        | { message?: string }
-        | null
-
-      setSubmitError(
-        data?.message ?? "Something went wrong while signing you in."
-      )
+    const formData = new FormData()
+    formData.set("email", values.email)
+    formData.set("password", values.password)
+    const result = await signInWithEmailPasswordAction({ formData })
+    if (result.ok) {
+      router.push("/dashboard")
       return
     }
+    setSubmitError(result.message ?? "Something went wrong. Please try again.")
   }
 
   return (
