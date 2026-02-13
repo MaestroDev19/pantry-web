@@ -114,6 +114,7 @@ export function SignupForm(props: React.ComponentProps<"div">) {
                 </FieldLabel>
                 <Input
                   id="confirm-password"
+                  name="confirm_password"
                   type="password"
                   autoComplete="new-password"
                   required
