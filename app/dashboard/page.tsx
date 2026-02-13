@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/card";
 import { getRandomRecipe } from "@/lib/recipe";
 import { Button } from "@/components/ui/button";
-import { Badge } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 /**
  * Dashboard home page.
