@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Nunito_Sans } from "next/font/google";
-import { Toaster } from "@/components/ui/sonner";
+import { Toaster } from "sonner";
 import "./globals.css";
 
 // Root application layout.

@@ -5,7 +5,6 @@ import { Separator as SeparatorPrimitive } from "radix-ui"
 
 import { cn } from "@/lib/utils"
 
-// Thin visual separator used to divide sections of content or form groups.
 function Separator({
   className,
   orientation = "horizontal",

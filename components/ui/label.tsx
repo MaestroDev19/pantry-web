@@ -5,8 +5,6 @@ import { Label as LabelPrimitive } from "radix-ui"
 
 import { cn } from "@/lib/utils"
 
-// Accessible label primitive used by form fields.
-// Wraps Radix's Label to keep spacing and disabled states consistent.
 function Label({
   className,
   ...props

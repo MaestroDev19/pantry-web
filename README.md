@@ -211,3 +211,13 @@ Planned behavior:
   - Zod schemas colocated with the form when possible
 
 For backend details and domain logic, see the Pantry Server README (FastAPI project). This frontend is intentionally kept thin, delegating business logic and data consistency to the backend API.
+
+### Recent Updates
+
+- Dashboard `/dashboard` now matches the PantryAI design:
+  - Summary stat tiles with `PantryStatCard` (good status, expiring soon, expired, total items)
+  - “Action required” list for critical items
+  - AI suggestion recipe card
+  - Right-hand shopping list column
+- Shadcn sidebar (`AppSidebar`, `NavMain`, `NavUser`) has been added to the dashboard layout and is wired to the Supabase user.
+- Logout is handled by `signOutAction` in `app/(auth)/actions.ts` and triggered from `NavUser` with a confirmation alert before signing the user out.

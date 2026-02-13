@@ -111,3 +111,14 @@ export async function signUpFormAction(
 ): Promise<AuthActionResult> {
   return signUpWithEmailPasswordAction({ formData });
 }
+
+export async function signOutAction(): Promise<void> {
+  const supabase = await createClient();
+
+  const { error } = await supabase.auth.signOut();
+
+  if (error) {
+    // Optionally log or capture the error; UI does not depend on this return.
+    console.error("Error signing out:", error.message);
+  }
+}

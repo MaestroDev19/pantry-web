@@ -2,8 +2,6 @@ import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
-// Card and subcomponents used for grouped content such as auth forms or panels.
-// These primitives keep padding, borders, and spacing consistent across the app.
 function Card({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
