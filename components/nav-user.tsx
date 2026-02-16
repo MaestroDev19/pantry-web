@@ -1,4 +1,4 @@
-"use client";
+import * as React from "react";
 
 import {
   IconCreditCard,
@@ -29,12 +29,13 @@ import { signOutAction } from "@/app/(auth)/actions";
 
 export function NavUser({ user }: { user: User }) {
   const { isMobile } = useSidebar();
+  const id = React.useId();
 
   return (
     <SidebarMenu>
       <SidebarMenuItem>
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
+          <DropdownMenuTrigger asChild id={id}>
             <SidebarMenuButton
               size="lg"
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"

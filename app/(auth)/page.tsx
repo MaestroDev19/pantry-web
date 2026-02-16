@@ -1,5 +1,6 @@
 import { LoginForm } from "@/components/pages/login-form";
-import { Link, Utensils } from "lucide-react";
+import { Utensils } from "lucide-react";
+import Link from "next/link";
 
 /**
  * Public login route for the Pantry web app.

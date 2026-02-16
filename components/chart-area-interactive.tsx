@@ -142,6 +142,7 @@ const chartConfig = {
 
 export function ChartAreaInteractive() {
   const isMobile = useIsMobile()
+  const id = React.useId()
   const [timeRange, setTimeRange] = React.useState("90d")
 
   React.useEffect(() => {
@@ -212,6 +213,7 @@ export function ChartAreaInteractive() {
         <ChartContainer
           config={chartConfig}
           className="aspect-auto h-[250px] w-full"
+          id={id}
         >
           <AreaChart data={filteredData}>
             <defs>

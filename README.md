@@ -149,6 +149,13 @@ hooks/
   use-supabase-user.ts    # Client hook for Supabase user state
 
 lib/
+  auth/
+    checks/
+      actions.ts    # Auth checks & profile creation (server actions)
+    utils.ts        # Auth utilities
+  data/
+    actions.ts      # Data fetching server actions
+    types.ts        # Data interfaces (Profile, Household, Preferences, etc.)
   supabase/
     client.ts             # Browser Supabase client
     server.ts             # Server Supabase client for RSC/actions
@@ -214,10 +221,12 @@ For backend details and domain logic, see the Pantry Server README (FastAPI proj
 
 ### Recent Updates
 
-- Dashboard `/dashboard` now matches the PantryAI design:
-  - Summary stat tiles with `PantryStatCard` (good status, expiring soon, expired, total items)
-  - “Action required” list for critical items
-  - AI suggestion recipe card
-  - Right-hand shopping list column
-- Shadcn sidebar (`AppSidebar`, `NavMain`, `NavUser`) has been added to the dashboard layout and is wired to the Supabase user.
-- Logout is handled by `signOutAction` in `app/(auth)/actions.ts` and triggered from `NavUser` with a confirmation alert before signing the user out.
+- **Data Architecture Refactor**:
+  - Centralized server-side data fetching in `lib/data/actions.ts`.
+  - Profile creation logic moved to `lib/auth/checks/actions.ts`.
+  - Data types aligned with SQL schema in `lib/data/types.ts` (added `Household`, `UserPreferences`).
+- **Dashboard**:
+  - Matches PantryAI design with summary tiles (`PantryStatCard`) and "Action required" lists.
+  - Wired to Supabase user via `AppSidebar`.
+- **Auth**:
+  - Logout handled by `signOutAction` in `app/(auth)/actions.ts`.
