@@ -6,14 +6,16 @@ import data from "./data.json";
 import {
 	Card,
 	CardAction,
+	CardContent,
 	CardDescription,
 	CardFooter,
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { getRandomRecipe } from "@/lib/recipe";
+import { getRandomRecipe } from "@/lib/data/recipe";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { TypographyH3 } from "@/components/typography";
 
 /**
  * Dashboard home page.
@@ -29,27 +31,45 @@ export default async function Page() {
 			<div className="@container/main flex flex-1 flex-col gap-2">
 				<div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
 					<SectionCards />
-					<div className="grid grid-cols-2 gap-4 px-4 lg:px-6">
+					{/* Responsive grid: 1 column on small, 2 columns on md+ */}
+					<div className="grid grid-cols-1 gap-4 px-2 sm:px-4 md:grid-cols-2 md:px-6">
 						<div className="flex flex-col gap-4">
 							<ChartAreaInteractive />
 							<Card>
-								<div className="absolute inset-0 z-30 aspect-video S" />
-								<img
-									src="https://avatar.vercel.sh/shadcn1"
-									alt="Event cover"
-									className="relative z-20 aspect-video w-full object-cover brightness-60 grayscale dark:brightness-40"
-								/>
 								<CardHeader>
-									<CardAction>
-										<Badge variant="secondary">
-											Featured
-										</Badge>
-									</CardAction>
-									<CardTitle>{recipe.strMeal}</CardTitle>
+									<CardTitle>
+										Chef&apos;s daily choice
+									</CardTitle>
 								</CardHeader>
+								<CardContent>
+									<div className="flex flex-col gap-2">
+										<TypographyH3 className="font-bold">
+											{recipe.strMeal}
+										</TypographyH3>
+										<CardDescription>
+											<div className="flex flex-wrap gap-2">
+												<Badge variant="outline">
+													{recipe.strCategory}
+												</Badge>
+												<Badge variant="outline">
+													{recipe.strArea}
+												</Badge>
+												<Badge variant="outline">
+													{recipe.strIngredient1}
+												</Badge>
+												<Badge variant="outline">
+													{recipe.strIngredient2}
+												</Badge>
+												<Badge variant="outline">
+													{recipe.strIngredient3}
+												</Badge>
+											</div>
+										</CardDescription>
+									</div>
+								</CardContent>
 								<CardFooter>
 									<Button className="w-full">
-										View Event
+										View Recipe
 									</Button>
 								</CardFooter>
 							</Card>

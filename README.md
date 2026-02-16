@@ -44,8 +44,9 @@ The app is designed to mirror the backend domain model (pantry items, recipes, s
 - Global layout with Nunito Sans font and Tailwind CSS styling
 - Shared typography and UI primitives (`components/ui` and `components/typography`)
 - Authenticated dashboard shell under `/dashboard`:
-  - `app/dashboard/layout.tsx` enforces Supabase auth and renders a common dashboard shell
-  - `app/dashboard/page.tsx` shows the pantry overview dashboard using `DashboardHeader`, `PantryStatCard`, and copy from `lib/copy/pantry-dashboard`
+  - `app/dashboard/layout.tsx` enforces Supabase auth, ensures user profile and household membership (`checkForHouseholdMembership`), and renders `SidebarProvider` with `AppSidebar` and `SidebarInset`
+  - Collapsible sidebar: `AppSidebar` (with `NavMain`, `NavUser`), `SiteHeader` with `SidebarTrigger` (toggle open/close), and nav links to Home, Pantry, Recipes, Shopping Lists, Household via Next.js `Link`
+  - `app/dashboard/page.tsx` shows the pantry overview with `SectionCards`, `ChartAreaInteractive`, and recipe/activity cards
 - Hook `hooks/use-supabase-user.ts` for client-side user state
 
 **Planned**
@@ -89,10 +90,11 @@ cp .env.example .env.local  # if present
 # otherwise create .env.local manually
 ```
 
-Typical variables (to be populated once Supabase integration is wired in):
+Typical variables:
 
-- `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
+- `NEXT_PUBLIC_SUPABASE_URL` – Supabase project URL
+- `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` – Supabase anon/publishable key
+- `NEXT_PUBLIC_PANTRY_API_URL` – Backend API base URL (e.g. `http://127.0.0.1:8000`) for household creation and other API calls
 
 ### Running the App
 
@@ -121,49 +123,51 @@ app/
     confirm/
       route.ts            # Auth confirmation (e.g. email verification)
   dashboard/
-    layout.tsx            # Auth-protected dashboard shell (requires Supabase user)
-    page.tsx              # Pantry overview dashboard
+    layout.tsx            # Auth-protected shell: SidebarProvider, AppSidebar, household check
+    page.tsx              # Pantry overview (SectionCards, chart, recipe cards)
     settings/
       page.tsx            # Placeholder for dashboard settings
 
 components/
+  app-sidebar.tsx         # Dashboard sidebar (NavMain, NavUser, collapsible)
+  nav-main.tsx            # Sidebar nav links (Quick Add + Link to Home, Pantry, Recipes, etc.)
+  nav-user.tsx            # Sidebar footer user menu
+  site-header.tsx         # Dashboard header with SidebarTrigger (client)
+  section-cards.tsx       # Dashboard section cards
+  chart-area-interactive.tsx
+  data-table.tsx
   layouts/
     dashboard-header.tsx  # Shared dashboard header (title, subtitle, user, primary action)
   dashboard/
-    pantry-stat-card.tsx  # Reusable stat card for pantry metrics
+    pantry-stat-card.tsx # Reusable stat card for pantry metrics
   pages/
-    login-form.tsx        # Login form (client component, RHF + Zod, calls signInWithEmailPasswordAction)
+    login-form.tsx        # Login form (client, RHF + Zod, signInWithEmailPasswordAction)
     signup-form.tsx       # Signup form UI + useActionState(signUpFormAction)
   typography.tsx          # Shared typography primitives (H1–H4, body, etc.)
   ui/
-    button.tsx            # Button primitive (variants + sizes)
-    card.tsx              # Card layout primitives
-    input.tsx             # Styled input field
-    field.tsx             # Higher-level form layout + error helpers
-    label.tsx             # Accessible label wrapper
-    separator.tsx         # Horizontal/vertical separator
-    sonner.tsx            # Toast component (Sonner)
-    toaster.tsx           # Toaster provider
+    button.tsx, card.tsx, input.tsx, field.tsx, label.tsx, separator.tsx
+    sidebar.tsx           # SidebarProvider, Sidebar, SidebarTrigger, etc.
+    sonner.tsx, toaster.tsx
 
 hooks/
   use-supabase-user.ts    # Client hook for Supabase user state
+  use-mobile.ts           # Breakpoint for sidebar (sheet vs collapsible)
 
 lib/
   auth/
     checks/
-      actions.ts    # Auth checks & profile creation (server actions)
+      actions.ts    # ensureUserProfile, checkForHouseholdMembership (RLS-safe)
     utils.ts        # Auth utilities
   data/
     actions.ts      # Data fetching server actions
-    types.ts        # Data interfaces (Profile, Household, Preferences, etc.)
+    types.ts        # Data interfaces (Profile, Household, etc.)
+    recipe.ts       # Recipe fetch helpers
   supabase/
-    client.ts             # Browser Supabase client
-    server.ts             # Server Supabase client for RSC/actions
-    proxy.ts              # Proxy helper that calls supabase.auth.getClaims()
+    client.ts, server.ts, proxy.ts
   copy/
-    pantry-dashboard.ts   # Centralized copy for pantry dashboard text
+    pantry-dashboard.ts   # Copy for pantry dashboard text
 
-proxy.ts                  # Next.js proxy entry that calls updateSession and defines the matcher
+proxy.ts                  # Next.js proxy: updateSession, matcher
 ```
 
 This structure follows Next.js App Router conventions and keeps auth, shared components, and UI primitives clearly separated.
@@ -179,10 +183,11 @@ This structure follows Next.js App Router conventions and keeps auth, shared com
   - Renders `SignupForm` with name, email, and password fields
   - Submits via Next.js `<Form />` and `useActionState` to `signUpFormAction`
 - `/dashboard` – Authenticated pantry overview
-  - Protected by Supabase via `app/dashboard/layout.tsx` and the global proxy
-  - Shows dashboard header, high-level stats, expiring items, and recent activity
+  - Protected by Supabase via `app/dashboard/layout.tsx` and the global proxy; ensures user profile and household membership (creates default household via API if needed)
+  - Sidebar: collapsible/offcanvas with nav links (Home, Pantry, Recipes, Shopping Lists, Household) and header trigger; `SiteHeader` is a client component so `SidebarTrigger` receives sidebar context
+  - Main content: section cards, interactive chart, and recipe/activity cards
 
-Additional routes for pantry items, recipes, and shopping lists will be added under `app/` as the domain UI grows.
+Additional routes for pantry items, recipes, and shopping lists live under `/pantry`, `/recipes`, `/shopping-lists`, `/household` (linked from the sidebar).
 
 ### Auth Flows
 
@@ -221,12 +226,12 @@ For backend details and domain logic, see the Pantry Server README (FastAPI proj
 
 ### Recent Updates
 
-- **Data Architecture Refactor**:
-  - Centralized server-side data fetching in `lib/data/actions.ts`.
-  - Profile creation logic moved to `lib/auth/checks/actions.ts`.
-  - Data types aligned with SQL schema in `lib/data/types.ts` (added `Household`, `UserPreferences`).
-- **Dashboard**:
-  - Matches PantryAI design with summary tiles (`PantryStatCard`) and "Action required" lists.
-  - Wired to Supabase user via `AppSidebar`.
+- **Dashboard shell**:
+  - Collapsible sidebar with `SidebarProvider`, `AppSidebar`, `NavMain` (Next.js `Link` for each nav item), and `NavUser`. Header uses `SiteHeader` (client component) with `SidebarTrigger` so the toggle works within the sidebar context.
+  - Dashboard layout runs `checkForHouseholdMembership`; if the Supabase RLS policy triggers infinite recursion (code `42P17`), the app treats it as existing membership and does not block the dashboard.
+- **Data & auth**:
+  - Profile creation and household check in `lib/auth/checks/actions.ts`; data types in `lib/data/types.ts`. Backend household creation uses `NEXT_PUBLIC_PANTRY_API_URL`.
 - **Auth**:
-  - Logout handled by `signOutAction` in `app/(auth)/actions.ts`.
+  - Logout via `signOutAction` in `app/(auth)/actions.ts`.
+- **Supabase**:
+  - RLS fix for `household_members` (no recursion): use policy `household_members_select_own` with `USING (user_id = auth.uid())`. Migration: `server/supabase/migrations/20260216000000_household_members_rls_fix.sql`.
