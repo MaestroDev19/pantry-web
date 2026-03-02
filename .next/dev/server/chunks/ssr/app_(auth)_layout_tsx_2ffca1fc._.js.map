@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 4, "column": 0}, "map": {"version":3,"sources":["file:///C:/Users/charl/Documents/pantry/app/%28auth%29/layout.tsx"],"sourcesContent":["import Link from \"next/link\";\r\nimport { UtensilsCrossedIcon } from \"lucide-react\";\r\nexport default function AuthLayout({\r\n  children,\r\n}: {\r\n  children: React.ReactNode;\r\n}) {\r\n  return (\r\n    <div className=\"bg-muted flex min-h-svh flex-col items-center justify-center gap-6 p-6 md:p-10\">\r\n      <div className=\"flex w-full max-w-sm flex-col gap-6\">\r\n        <Link\r\n          href=\"/\"\r\n          className=\"flex items-center gap-2 self-center font-medium\"\r\n        >\r\n          <div className=\"bg-primary text-primary-foreground flex size-6 items-center justify-center rounded-md\">\r\n            <UtensilsCrossedIcon className=\"size-4\" />\r\n          </div>\r\n          Pantry\r\n        </Link>\r\n        {children}\r\n      </div>\r\n    </div>\r\n  );\r\n}\r\n"],"names":[],"mappings":";;;;;AAAA;AACA;;;;AACe,SAAS,WAAW,EACjC,QAAQ,EAGT;IACC,qBACE,8OAAC;QAAI,WAAU;kBACb,cAAA,8OAAC;YAAI,WAAU;;8BACb,8OAAC,0LAAI;oBACH,MAAK;oBACL,WAAU;;sCAEV,8OAAC;4BAAI,WAAU;sCACb,cAAA,8OAAC,wLAAmB;gCAAC,WAAU;;;;;;;;;;;wBAC3B;;;;;;;gBAGP;;;;;;;;;;;;AAIT"}}]
+}

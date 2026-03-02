@@ -1,0 +1,51 @@
+{
+  "node": {
+    "407c5fcac14f8c66ab0032b3c05a07e5585ca35aca": {
+      "workers": {
+        "app/(auth)/page": {
+          "moduleId": "[project]/.next-internal/server/app/(auth)/page/actions.js { ACTIONS_MODULE0 => \"[project]/actions/auth.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "signInWithEmail",
+          "filename": "actions/auth.ts"
+        }
+      },
+      "layer": {
+        "app/(auth)/page": "action-browser"
+      },
+      "filename": "actions/auth.ts",
+      "exportedName": "signInWithEmail"
+    },
+    "6099e830bab35c90e8b84bda229cfda15d5668579f": {
+      "workers": {
+        "app/dashboard/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/page/actions.js { ACTIONS_MODULE0 => \"[project]/lib/checks/household.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/actions/auth.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "checkForHouseholdMembership",
+          "filename": "lib/checks/household.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/page": "rsc"
+      },
+      "filename": "lib/checks/household.ts",
+      "exportedName": "checkForHouseholdMembership"
+    },
+    "003b5a6c2d6780046e50bf52e044818b99577bec23": {
+      "workers": {
+        "app/dashboard/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/page/actions.js { ACTIONS_MODULE0 => \"[project]/lib/checks/household.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/actions/auth.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "signOut",
+          "filename": "actions/auth.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/page": "action-browser"
+      },
+      "filename": "actions/auth.ts",
+      "exportedName": "signOut"
+    }
+  },
+  "edge": {},
+  "encryptionKey": "3TWbcoo9ccWGfvVA8mN7fEPNWqYN4Ig4JuT2cQbHTQg="
+}

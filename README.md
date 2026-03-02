@@ -1,6 +1,6 @@
 ## Pantry Web App
 
-Next.js 16 App Router frontend for the Pantry application. This project provides the authenticated web experience for managing household pantries, built to pair with the Pantry FastAPI + Supabase backend.
+Next.js App Router frontend for the Pantry application. This project provides the authenticated web experience for managing household pantries, built to pair with the Pantry FastAPI + Supabase backend.
 
 ### Table of Contents
 
@@ -29,39 +29,33 @@ The app is designed to mirror the backend domain model (pantry items, recipes, s
 
 **Implemented**
 
-- Login page at `/` with:
-  - Email + password form
-  - Zod + React Hook Form validation
-  - Shadcn UI components for layout and fields
-  - Supabase-backed login via server action `signInWithEmailPasswordAction` (no API route)
-- Registration page at `/register` with:
-  - Name, email, password fields
-  - Shared typography and form primitives
-  - Server action-powered signup using `signUpFormAction` and Supabase auth
-- Auth types and initial state in `app/(auth)/auth-types.ts`; server actions in `app/(auth)/actions.ts`
-- Auth confirmation route at `app/auth/confirm/route.ts` for email verification
-- Auth proxy configured with `proxy.ts` and `lib/supabase/proxy.ts` using `supabase.auth.getClaims()` to keep sessions in sync
-- Global layout with Nunito Sans font and Tailwind CSS styling
-- Shared typography and UI primitives (`components/ui` and `components/typography`)
-- Authenticated dashboard shell under `/dashboard`:
-  - `app/dashboard/layout.tsx` enforces Supabase auth, ensures user profile and household membership (`checkForHouseholdMembership`), and renders `SidebarProvider` with `AppSidebar` and `SidebarInset`
-  - Collapsible sidebar: `AppSidebar` (with `NavMain`, `NavUser`), `SiteHeader` with `SidebarTrigger` (toggle open/close), and nav links to Home, Pantry, Recipes, Shopping Lists, Household via Next.js `Link`
-  - `app/dashboard/page.tsx` shows the pantry overview with `SectionCards`, `ChartAreaInteractive`, and recipe/activity cards
-- Hook `hooks/use-supabase-user.ts` for client-side user state
+- Auth group under `app/(auth)`:
+  - Login page at `/` rendering `LoginForm` from `components/auth/login.tsx`
+  - Signup page at `/signup` rendering `SignupForm` from `components/auth/signup.tsx`
+  - Shared `AuthLayout` in `app/(auth)/layout.tsx` for branding and centered card layout
+- Email confirmation route at `app/auth/confirm/route.ts` using Supabase OTP verification
+- Supabase client helpers in `lib/supabase/{client,server,proxy}.ts`
+- Auth checks in `lib/checks/{profile,household}.ts`
+- Dashboard under `/dashboard`:
+  - `app/dashboard/layout.tsx` (auth-protected shell, sidebar + header)
+  - `app/dashboard/page.tsx` (section cards, expiration table, data table)
+- Shared dashboard components in `components/dashboard/*`
+- Reusable UI primitives in `components/ui/*` (button, card, input, field, drawer, dialog, etc.)
+- Utility helpers in `lib/utils.ts` (e.g. `cn`)
+- Responsive hook `hooks/use-mobile.ts` for mobile breakpoints
 
 **Planned**
 
-- Migrate auth actions to `next-safe-action` for stronger type safety
 - Expand the dashboard with real pantry data (items, recipes, shopping lists, preferences)
 - Household switching and sharing flows
 
 ### Tech Stack
 
-- **Framework**: Next.js 16 App Router (React Server Components first)
+- **Framework**: Next.js App Router (React Server Components first)
 - **Language**: TypeScript
-- **Styling**: Tailwind CSS v4
+- **Styling**: Tailwind CSS
 - **UI Components**: shadcn/ui-style primitives, Radix UI, custom `components/ui/*`
-- **Forms**: React Hook Form + Zod
+- **Forms**: `@tanstack/react-form` + Zod
 - **Font**: Google `Nunito Sans` via `next/font`
 - **Package Manager**: Bun (lockfile present)
 
@@ -72,11 +66,11 @@ The app is designed to mirror the backend domain model (pantry items, recipes, s
   - Bun installed (`bun -v`)
 - **Backend**:
   - Pantry Server running locally or deployed (FastAPI + Supabase)
-  - Supabase project configured (for future auth/data integration)
+  - Supabase project configured (for auth and data)
 
 ### Setup
 
-From the `my-app` directory:
+From the project root:
 
 ```bash
 # Install dependencies (preferred)
@@ -112,62 +106,61 @@ Relevant frontend directories:
 
 ```text
 app/
-  layout.tsx              # Root layout, global font + shell
+  layout.tsx              # Root layout, global font + Toaster
   (auth)/
-    actions.ts            # Server actions: signIn, signUp, signUpFormAction
-    auth-types.ts         # AuthActionResult type and INITIAL_AUTH_ACTION_RESULT
+    layout.tsx            # Shared auth layout (brand + centered card)
     page.tsx              # Login route (`/`)
-    register/
-      page.tsx            # Registration route (`/register`)
+    signup/
+      page.tsx            # Signup route (`/signup`)
   auth/
     confirm/
-      route.ts            # Auth confirmation (e.g. email verification)
+      route.ts            # Auth confirmation (email verification via Supabase)
   dashboard/
-    layout.tsx            # Auth-protected shell: SidebarProvider, AppSidebar, household check
-    page.tsx              # Pantry overview (SectionCards, chart, recipe cards)
-    settings/
-      page.tsx            # Placeholder for dashboard settings
+    layout.tsx            # Auth-protected shell: sidebar, header, checks
+    page.tsx              # Pantry overview (section cards, expiration + data table)
+    data.json             # Mock dashboard data for the main table
 
 components/
   app-sidebar.tsx         # Dashboard sidebar (NavMain, NavUser, collapsible)
-  nav-main.tsx            # Sidebar nav links (Quick Add + Link to Home, Pantry, Recipes, etc.)
+  nav-main.tsx            # Sidebar nav links
   nav-user.tsx            # Sidebar footer user menu
-  site-header.tsx         # Dashboard header with SidebarTrigger (client)
-  section-cards.tsx       # Dashboard section cards
-  chart-area-interactive.tsx
-  data-table.tsx
-  layouts/
-    dashboard-header.tsx  # Shared dashboard header (title, subtitle, user, primary action)
+  site-header.tsx         # Dashboard header with sidebar trigger
   dashboard/
-    pantry-stat-card.tsx # Reusable stat card for pantry metrics
-  pages/
-    login-form.tsx        # Login form (client, RHF + Zod, signInWithEmailPasswordAction)
-    signup-form.tsx       # Signup form UI + useActionState(signUpFormAction)
-  typography.tsx          # Shared typography primitives (H1–H4, body, etc.)
+    data-table.tsx        # Main pantry data table
+    expiration-table.tsx  # Upcoming expiration list
+    section-cards.tsx     # Dashboard summary cards
+  auth/
+    login.tsx             # Login form (client, TanStack React Form + Zod)
+    signup.tsx            # Signup form (client)
+    confirm.tsx           # Confirmation messaging
   ui/
     button.tsx, card.tsx, input.tsx, field.tsx, label.tsx, separator.tsx
-    sidebar.tsx           # SidebarProvider, Sidebar, SidebarTrigger, etc.
-    sonner.tsx, toaster.tsx
+    drawer.tsx, dialog.tsx, dropdown-menu.tsx, table.tsx, tabs.tsx, checkbox.tsx
+    sidebar.tsx, sheet.tsx, tooltip.tsx, calendar.tsx, popover.tsx, etc.
 
 hooks/
-  use-supabase-user.ts    # Client hook for Supabase user state
-  use-mobile.ts           # Breakpoint for sidebar (sheet vs collapsible)
+  use-mobile.ts           # Breakpoint hook for responsive sidebar
 
 lib/
-  auth/
-    checks/
-      actions.ts    # ensureUserProfile, checkForHouseholdMembership (RLS-safe)
-    utils.ts        # Auth utilities
-  data/
-    actions.ts      # Data fetching server actions
-    types.ts        # Data interfaces (Profile, Household, etc.)
-    recipe.ts       # Recipe fetch helpers
+  config.ts               # App configuration constants
+  dashboard.ts            # Dashboard data fetching & helpers
+  auth-errors.ts          # Auth error mapping
+  session.ts              # Session helpers
+  checks/
+    profile.ts            # ensureUserProfile logic
+    household.ts          # checkForHouseholdMembership logic
   supabase/
-    client.ts, server.ts, proxy.ts
-  copy/
-    pantry-dashboard.ts   # Copy for pantry dashboard text
+    client.ts             # Supabase client for client components
+    server.ts             # Supabase client for server components
+    proxy.ts              # Supabase session update proxy helpers
+  dal/
+    auth.ts               # Auth-related DAL helpers
+  validations/
+    auth.ts               # Zod schemas for auth forms
+    pantry.ts             # Zod schemas for pantry-related data
+  utils.ts                # Shared utilities (e.g. `cn`)
 
-proxy.ts                  # Next.js proxy: updateSession, matcher
+proxy.ts                  # Next.js middleware-style proxy: updateSession, matcher
 ```
 
 This structure follows Next.js App Router conventions and keeps auth, shared components, and UI primitives clearly separated.
@@ -175,39 +168,40 @@ This structure follows Next.js App Router conventions and keeps auth, shared com
 ### Key Routes
 
 - `/` – Login page
-  - Renders brand header and `LoginForm`
-  - Validates email and password using Zod schema
-  - Submits via `signInWithEmailPasswordAction` server action (no API route)
-- `/register` – Registration page
-  - Reuses brand header
-  - Renders `SignupForm` with name, email, and password fields
-  - Submits via Next.js `<Form />` and `useActionState` to `signUpFormAction`
+  - Renders `LoginForm` from `components/auth/login.tsx`
+  - Validates email and password using a Zod-based `loginSchema`
+  - Submits via a Supabase-backed auth flow
+- `/signup` – Signup page
+  - Renders `SignupForm` from `components/auth/signup.tsx`
+  - Validates name, email, and password with Zod
+  - Calls Supabase signup via server-side helpers
+- `/auth/confirm` – Email confirmation
+  - Handles Supabase email OTP verification
+  - Ensures profile and household membership, then redirects to `/dashboard`
 - `/dashboard` – Authenticated pantry overview
-  - Protected by Supabase via `app/dashboard/layout.tsx` and the global proxy; ensures user profile and household membership (creates default household via API if needed)
-  - Sidebar: collapsible/offcanvas with nav links (Home, Pantry, Recipes, Shopping Lists, Household) and header trigger; `SiteHeader` is a client component so `SidebarTrigger` receives sidebar context
-  - Main content: section cards, interactive chart, and recipe/activity cards
+  - Protected by Supabase; ensures user profile and household membership
+  - Sidebar with navigation and user menu
+  - Main content: section cards, expiration table, and data table
 
-Additional routes for pantry items, recipes, and shopping lists live under `/pantry`, `/recipes`, `/shopping-lists`, `/household` (linked from the sidebar).
+Additional routes for pantry items, recipes, and shopping lists can be added under `/pantry`, `/recipes`, `/shopping-lists`, `/household` using the existing dashboard shell.
 
 ### Auth Flows
 
 Current behavior:
 
 - Login form:
-  - Uses React Hook Form with Zod for client-side validation
-  - Builds `FormData` from values and calls `signInWithEmailPasswordAction` server action directly
-  - Server action validates with Zod and calls `supabase.auth.signInWithPassword`; on success redirects to `/dashboard`
+  - Uses `@tanstack/react-form` with Zod for client-side validation
+  - Calls a Supabase-backed login helper and redirects to `/dashboard` on success
 - Signup form:
   - Collects name, email, and password
-  - Uses `<Form />` + `useActionState` to call `signUpFormAction`
-  - Server action validates input with Zod and calls `supabase.auth.signUp`
+  - Validates with Zod
+  - Calls Supabase `auth.signUp` via server-side helpers
 - Supabase proxy:
-  - `proxy.ts` routes all relevant requests through `updateSession` in `lib/supabase/proxy.ts`
-  - Proxy uses `supabase.auth.getClaims()` to keep auth tokens refreshed and safe to read in server components
+  - `proxy.ts` routes relevant requests through helpers in `lib/supabase/proxy.ts`
+  - Proxy keeps auth tokens refreshed and safe to read in server components
 
 Planned behavior:
 
-- Use `next-safe-action` to wrap server actions for login/signup and future mutations
 - Extend the dashboard shell to include pantry items, recipes, shopping lists, and household management
 
 ### Development Guidelines
@@ -215,23 +209,7 @@ Planned behavior:
 - Use **React Server Components** by default in `app/` pages and layouts
 - Keep **client components** small and focused (forms, interactive widgets)
 - Use **TypeScript** everywhere with explicit types for public functions
-- Prefer shared primitives from:
-  - `components/ui/*` for low-level UI
-  - `components/typography.tsx` for headings and text
-- Keep forms consistent:
-  - `react-hook-form` + `@hookform/resolvers/zod`
-  - Zod schemas colocated with the form when possible
+- Prefer shared primitives from `components/ui/*` for low-level UI
+- Keep forms consistent with Zod schemas colocated near the form logic when possible
 
 For backend details and domain logic, see the Pantry Server README (FastAPI project). This frontend is intentionally kept thin, delegating business logic and data consistency to the backend API.
-
-### Recent Updates
-
-- **Dashboard shell**:
-  - Collapsible sidebar with `SidebarProvider`, `AppSidebar`, `NavMain` (Next.js `Link` for each nav item), and `NavUser`. Header uses `SiteHeader` (client component) with `SidebarTrigger` so the toggle works within the sidebar context.
-  - Dashboard layout runs `checkForHouseholdMembership`; if the Supabase RLS policy triggers infinite recursion (code `42P17`), the app treats it as existing membership and does not block the dashboard.
-- **Data & auth**:
-  - Profile creation and household check in `lib/auth/checks/actions.ts`; data types in `lib/data/types.ts`. Backend household creation uses `NEXT_PUBLIC_PANTRY_API_URL`.
-- **Auth**:
-  - Logout via `signOutAction` in `app/(auth)/actions.ts`.
-- **Supabase**:
-  - RLS fix for `household_members` (no recursion): use policy `household_members_select_own` with `USING (user_id = auth.uid())`. Migration: `server/supabase/migrations/20260216000000_household_members_rls_fix.sql`.

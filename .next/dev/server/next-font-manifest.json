@@ -1,0 +1,10 @@
+{
+  "app": {
+    "[project]/app/(auth)/page": [],
+    "[project]/app/_not-found/page": [],
+    "[project]/app/dashboard/page": []
+  },
+  "appUsingSizeAdjust": true,
+  "pages": {},
+  "pagesUsingSizeAdjust": false
+}
