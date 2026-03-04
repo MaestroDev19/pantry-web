@@ -1,5 +1,11 @@
 "use client";
-
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "../ui/dropdown-menu";
 import * as React from "react";
 import {
   closestCenter,
@@ -59,14 +65,6 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "@/components/ui/drawer";
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -93,8 +91,6 @@ import {
   CheckmarkCircle01Icon,
   Loading03Icon,
   MoreVerticalCircle01Icon,
-  LeftToRightListBulletIcon,
-  ArrowDown01Icon,
   Add01Icon,
   ArrowLeftDoubleIcon,
   ArrowLeft01Icon,
@@ -179,7 +175,7 @@ const columns: ColumnDef<z.infer<typeof schema>>[] = [
   },
   {
     accessorKey: "header",
-    header: "Header",
+    header: "Item",
     cell: ({ row }) => {
       return <TableCellViewer item={row.original} />;
     },
@@ -187,7 +183,7 @@ const columns: ColumnDef<z.infer<typeof schema>>[] = [
   },
   {
     accessorKey: "type",
-    header: "Section Type",
+    header: "Category",
     cell: ({ row }) => (
       <div className="w-32">
         <Badge variant="outline" className="text-muted-foreground px-1.5">
@@ -198,7 +194,7 @@ const columns: ColumnDef<z.infer<typeof schema>>[] = [
   },
   {
     accessorKey: "status",
-    header: "Status",
+    header: "Expires",
     cell: ({ row }) => (
       <Badge variant="outline" className="text-muted-foreground px-1.5">
         {row.original.status === "Done" ? (
@@ -213,95 +209,6 @@ const columns: ColumnDef<z.infer<typeof schema>>[] = [
         {row.original.status}
       </Badge>
     ),
-  },
-  {
-    accessorKey: "target",
-    header: () => <div className="w-full text-end">Target</div>,
-    cell: ({ row }) => (
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          toast.promise(new Promise((resolve) => setTimeout(resolve, 1000)), {
-            loading: `Saving ${row.original.header}`,
-            success: "Done",
-            error: "Error",
-          });
-        }}
-      >
-        <Label htmlFor={`${row.original.id}-target`} className="sr-only">
-          Target
-        </Label>
-        <Input
-          className="hover:bg-input/30 focus-visible:bg-background dark:hover:bg-input/30 dark:focus-visible:bg-input/30 h-8 w-16 border-transparent bg-transparent text-end shadow-none focus-visible:border dark:bg-transparent"
-          defaultValue={row.original.target}
-          id={`${row.original.id}-target`}
-        />
-      </form>
-    ),
-  },
-  {
-    accessorKey: "limit",
-    header: () => <div className="w-full text-end">Limit</div>,
-    cell: ({ row }) => (
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          toast.promise(new Promise((resolve) => setTimeout(resolve, 1000)), {
-            loading: `Saving ${row.original.header}`,
-            success: "Done",
-            error: "Error",
-          });
-        }}
-      >
-        <Label htmlFor={`${row.original.id}-limit`} className="sr-only">
-          Limit
-        </Label>
-        <Input
-          className="hover:bg-input/30 focus-visible:bg-background dark:hover:bg-input/30 dark:focus-visible:bg-input/30 h-8 w-16 border-transparent bg-transparent text-end shadow-none focus-visible:border dark:bg-transparent"
-          defaultValue={row.original.limit}
-          id={`${row.original.id}-limit`}
-        />
-      </form>
-    ),
-  },
-  {
-    accessorKey: "reviewer",
-    header: "Reviewer",
-    cell: ({ row }) => {
-      const isAssigned = row.original.reviewer !== "Assign reviewer";
-      if (isAssigned) {
-        return row.original.reviewer;
-      }
-      return (
-        <>
-          <Label htmlFor={`${row.original.id}-reviewer`} className="sr-only">
-            Reviewer
-          </Label>
-          <Select
-            items={[
-              { label: "Eddie Lake", value: "Eddie Lake" },
-              { label: "Jamik Tashpulatov", value: "Jamik Tashpulatov" },
-            ]}
-          >
-            <SelectTrigger
-              className="w-38 **:data-[slot=select-value]:block **:data-[slot=select-value]:truncate"
-              size="sm"
-              id={`${row.original.id}-reviewer`}
-            >
-              <SelectValue placeholder="Assign reviewer" />
-            </SelectTrigger>
-            <SelectContent align="end">
-              <SelectGroup>
-                <SelectItem value="Eddie Lake">Eddie Lake</SelectItem>
-                <SelectItem value="Jamik Tashpulatov">
-                  Jamik Tashpulatov
-                </SelectItem>
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </>
-      );
-    },
   },
   {
     id: "actions",
@@ -426,10 +333,9 @@ export function DataTable({
         <Select
           defaultValue="outline"
           items={[
-            { label: "Outline", value: "outline" },
-            { label: "Past Performance", value: "past-performance" },
-            { label: "Key Personnel", value: "key-personnel" },
-            { label: "Focus Documents", value: "focus-documents" },
+            { label: "Action Required", value: "outline" },
+            { label: "Expiring Soon", value: "past-performance" },
+            { label: "Expired", value: "key-personnel" },
           ]}
         >
           <SelectTrigger
@@ -441,67 +347,25 @@ export function DataTable({
           </SelectTrigger>
           <SelectContent>
             <SelectGroup>
-              <SelectItem value="outline">Outline</SelectItem>
-              <SelectItem value="past-performance">Past Performance</SelectItem>
-              <SelectItem value="key-personnel">Key Personnel</SelectItem>
-              <SelectItem value="focus-documents">Focus Documents</SelectItem>
+              <SelectItem value="outline">Action Required</SelectItem>
+              <SelectItem value="past-performance">Expiring Soon</SelectItem>
+              <SelectItem value="key-personnel">Expired</SelectItem>
             </SelectGroup>
           </SelectContent>
         </Select>
         <TabsList className="**:data-[slot=badge]:bg-muted-foreground/30 hidden **:data-[slot=badge]:size-5 **:data-[slot=badge]:rounded-full **:data-[slot=badge]:px-1 @4xl/main:flex">
-          <TabsTrigger value="outline">Outline</TabsTrigger>
+          <TabsTrigger value="outline">Action Required</TabsTrigger>
           <TabsTrigger value="past-performance">
-            Past Performance <Badge variant="secondary">3</Badge>
+            Expiring Soon <Badge variant="secondary">3</Badge>
           </TabsTrigger>
           <TabsTrigger value="key-personnel">
-            Key Personnel <Badge variant="secondary">2</Badge>
+            Expired <Badge variant="secondary">2</Badge>
           </TabsTrigger>
-          <TabsTrigger value="focus-documents">Focus Documents</TabsTrigger>
         </TabsList>
         <div className="flex items-center gap-2">
-          <DropdownMenu>
-            <DropdownMenuTrigger
-              render={<Button variant="outline" size="sm" />}
-            >
-              <HugeiconsIcon
-                icon={LeftToRightListBulletIcon}
-                strokeWidth={2}
-                data-icon="inline-start"
-              />
-              Columns
-              <HugeiconsIcon
-                icon={ArrowDown01Icon}
-                strokeWidth={2}
-                data-icon="inline-end"
-              />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-32">
-              {table
-                .getAllColumns()
-                .filter(
-                  (column) =>
-                    typeof column.accessorFn !== "undefined" &&
-                    column.getCanHide(),
-                )
-                .map((column) => {
-                  return (
-                    <DropdownMenuCheckboxItem
-                      key={column.id}
-                      className="capitalize"
-                      checked={column.getIsVisible()}
-                      onCheckedChange={(value) =>
-                        column.toggleVisibility(!!value)
-                      }
-                    >
-                      {column.id}
-                    </DropdownMenuCheckboxItem>
-                  );
-                })}
-            </DropdownMenuContent>
-          </DropdownMenu>
           <Button variant="outline" size="sm">
             <HugeiconsIcon icon={Add01Icon} strokeWidth={2} />
-            <span className="hidden lg:inline">Add Section</span>
+            <span className="hidden lg:inline">View full pantry</span>
           </Button>
         </div>
       </div>
@@ -653,12 +517,6 @@ export function DataTable({
       <TabsContent value="key-personnel" className="flex flex-col px-4 lg:px-6">
         <div className="aspect-video w-full flex-1 rounded-lg border border-dashed"></div>
       </TabsContent>
-      <TabsContent
-        value="focus-documents"
-        className="flex flex-col px-4 lg:px-6"
-      >
-        <div className="aspect-video w-full flex-1 rounded-lg border border-dashed"></div>
-      </TabsContent>
     </Tabs>
   );
 }
@@ -712,9 +570,14 @@ function TableCellViewer({ item }: { item: z.infer<typeof schema> }) {
         render={
           <Button
             variant="link"
-            className="text-foreground w-fit px-0 text-start"
+            className="text-foreground flex w-full items-center justify-between gap-4 px-0 text-start"
           >
-            {item.header}
+            <div className="flex flex-col">
+              <span className="text-sm font-medium">{item.header}</span>
+              <span className="text-xs text-muted-foreground">
+                {item.status} • {item.type}
+              </span>
+            </div>
           </Button>
         }
       />
@@ -896,12 +759,9 @@ function TableCellViewer({ item }: { item: z.infer<typeof schema> }) {
             </div>
           </form>
         </div>
-        <DrawerFooter>
+        <DialogFooter showCloseButton>
           <Button>Submit</Button>
-          <DrawerClose>
-            <Button variant="outline" />
-          </DrawerClose>
-        </DrawerFooter>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

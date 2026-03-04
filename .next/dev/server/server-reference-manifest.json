@@ -17,6 +17,12 @@
     },
     "6099e830bab35c90e8b84bda229cfda15d5668579f": {
       "workers": {
+        "app/dashboard/account/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/account/page/actions.js { ACTIONS_MODULE0 => \"[project]/lib/checks/household.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/actions/auth.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "checkForHouseholdMembership",
+          "filename": "lib/checks/household.ts"
+        },
         "app/dashboard/page": {
           "moduleId": "[project]/.next-internal/server/app/dashboard/page/actions.js { ACTIONS_MODULE0 => \"[project]/lib/checks/household.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/actions/auth.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": false,
@@ -25,6 +31,7 @@
         }
       },
       "layer": {
+        "app/dashboard/account/page": "rsc",
         "app/dashboard/page": "rsc"
       },
       "filename": "lib/checks/household.ts",
@@ -32,6 +39,12 @@
     },
     "003b5a6c2d6780046e50bf52e044818b99577bec23": {
       "workers": {
+        "app/dashboard/account/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/account/page/actions.js { ACTIONS_MODULE0 => \"[project]/lib/checks/household.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/actions/auth.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "signOut",
+          "filename": "actions/auth.ts"
+        },
         "app/dashboard/page": {
           "moduleId": "[project]/.next-internal/server/app/dashboard/page/actions.js { ACTIONS_MODULE0 => \"[project]/lib/checks/household.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/actions/auth.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": false,
@@ -40,6 +53,7 @@
         }
       },
       "layer": {
+        "app/dashboard/account/page": "action-browser",
         "app/dashboard/page": "action-browser"
       },
       "filename": "actions/auth.ts",

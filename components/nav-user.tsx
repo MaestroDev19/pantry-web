@@ -39,6 +39,7 @@ import {
   AlertDialogTrigger,
 } from "./ui/alert-dialog";
 import { signOut } from "@/actions/auth";
+import Link from "next/link";
 
 export function NavUser({
   user,
@@ -116,22 +117,15 @@ export function NavUser({
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
               <DropdownMenuGroup>
-                <DropdownMenuItem>
-                  <HugeiconsIcon icon={UserCircle02Icon} strokeWidth={2} />
-                  Account
-                </DropdownMenuItem>
+                <Link href="/dashboard/account">
+                  <DropdownMenuItem>
+                    <HugeiconsIcon icon={UserCircle02Icon} strokeWidth={2} />
+                    Account
+                  </DropdownMenuItem>
+                </Link>
                 <DropdownMenuItem>
                   <HugeiconsIcon icon={UserGroupIcon} strokeWidth={2} />
                   Household
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <HugeiconsIcon icon={Notification03Icon} strokeWidth={2} />
-                  Preferences
-                </DropdownMenuItem>
-
-                <DropdownMenuItem>
-                  <HugeiconsIcon icon={HelpCircleIcon} strokeWidth={2} />
-                  Help & Support
                 </DropdownMenuItem>
               </DropdownMenuGroup>
               <DropdownMenuSeparator />

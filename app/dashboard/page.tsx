@@ -4,6 +4,7 @@ import { getDashboardData } from "@/lib/dashboard";
 import { redirect } from "next/navigation";
 import { DataTable } from "@/components/dashboard/data-table";
 import data from "@/app/dashboard/data.json";
+import { DailyRecipe } from "@/components/dashboard/daily-recipe";
 export default async function Dashboard() {
   const dashboardData = await getDashboardData();
   if (!dashboardData) redirect("/");
@@ -18,6 +19,9 @@ export default async function Dashboard() {
           </h1>
           <SectionCards />
           <DataTable data={data} />
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <DailyRecipe />
+          </div>
         </div>
       </div>
     </div>

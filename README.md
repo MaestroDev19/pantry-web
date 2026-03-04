@@ -39,6 +39,7 @@ The app is designed to mirror the backend domain model (pantry items, recipes, s
 - Dashboard under `/dashboard`:
   - `app/dashboard/layout.tsx` (auth-protected shell, sidebar + header)
   - `app/dashboard/page.tsx` (section cards, expiration table, data table)
+  - `app/dashboard/account/page.tsx` (Account Settings: profile card, email/name, password section)
 - Shared dashboard components in `components/dashboard/*`
 - Reusable UI primitives in `components/ui/*` (button, card, input, field, drawer, dialog, etc.)
 - Utility helpers in `lib/utils.ts` (e.g. `cn`)
@@ -115,6 +116,10 @@ app/
   auth/
     confirm/
       route.ts            # Auth confirmation (email verification via Supabase)
+    reset-password/
+      page.tsx            # Request password reset email (Supabase PKCE flow)
+    update-password/
+      page.tsx            # Change password after email link redirect
   dashboard/
     layout.tsx            # Auth-protected shell: sidebar, header, checks
     page.tsx              # Pantry overview (section cards, expiration + data table)
@@ -189,16 +194,34 @@ Additional routes for pantry items, recipes, and shopping lists can be added und
 
 Current behavior:
 
-- Login form:
+#### Login & Signup
+
+- **Login form**:
   - Uses `@tanstack/react-form` with Zod for client-side validation
   - Calls a Supabase-backed login helper and redirects to `/dashboard` on success
-- Signup form:
+- **Signup form**:
   - Collects name, email, and password
   - Validates with Zod
   - Calls Supabase `auth.signUp` via server-side helpers
-- Supabase proxy:
+- **Supabase proxy**:
   - `proxy.ts` routes relevant requests through helpers in `lib/supabase/proxy.ts`
   - Proxy keeps auth tokens refreshed and safe to read in server components
+
+#### Password Reset (Supabase PKCE)
+
+- **Trigger reset**:
+  - From `/dashboard/account`, the **Change Password** button links to `/auth/reset-password`
+  - `app/auth/reset-password/page.tsx` collects the user&apos;s email and calls:
+    - `supabase.auth.resetPasswordForEmail(email, { redirectTo: NEXT_PUBLIC_SITE_URL + "/auth/update-password" })`
+  - `NEXT_PUBLIC_SITE_URL` must be set and `/auth/update-password` must be allowed in Supabase Auth → Redirect URLs
+- **Complete reset**:
+  - After the email link is clicked, Supabase redirects to `/auth/update-password` with a short-lived auth code (PKCE flow)
+  - `app/auth/update-password/page.tsx` is a client page that:
+    - Uses the browser Supabase client (`lib/supabase/client.ts`)
+    - Calls `supabase.auth.updateUser({ password: "<new-password>" })`
+    - Redirects back to `/dashboard/account` on success
+
+This follows Supabase&apos;s recommended PKCE password reset flow ([Password-based Auth docs](https://supabase.com/docs/guides/auth/passwords?queryGroups=flow&flow=pkce#resetting-a-password)).
 
 Planned behavior:
 

@@ -1,7 +1,9 @@
 {
   "app": {
     "[project]/app/(auth)/page": [],
-    "[project]/app/_not-found/page": [],
+    "[project]/app/auth/reset-password/page": [],
+    "[project]/app/auth/update-password/page": [],
+    "[project]/app/dashboard/account/page": [],
     "[project]/app/dashboard/page": []
   },
   "appUsingSizeAdjust": true,
