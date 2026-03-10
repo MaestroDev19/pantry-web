@@ -41,6 +41,14 @@ Pantry Web is built on a modern, React-centric stack focusing on performance, de
 
 ---
 
+## 🕒 Current Status
+
+Pantry Web has completed its foundational UI layout and Authentication systems. 
+- **Active Sprint Focus**: Constructing the frontend logic and UI layers for the Dashboard and Shopping List features using mocked component data. 
+- **Next Milestone**: Data fetching integration with the Python backend to connect the UI pieces developed (Pantry Health, Items By Category, Chef ACE Suggestions, and Shopping Lists) with their live data counterparts.
+
+---
+
 ## ✨ Core Features & Roadmap
 
 ### ✅ Currently Implemented
