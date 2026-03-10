@@ -1,6 +1,0 @@
-{
-  "version": 3,
-  "sources": [],
-  "sections": [
-    {"offset": {"line": 18, "column": 0}, "map": {"version":3,"sources":["file:///C:/Users/charl/Documents/Projects/Exepriment/pantry/app/%28app%29/dashboard/page.tsx"],"sourcesContent":["import { getUserClaims } from \"@/actions/auth\";\r\nimport { Avatar, AvatarFallback, AvatarImage } from \"@/components/ui/avatar\";\r\nimport { redirect } from \"next/navigation\";\r\nexport default async function Dashboard() {\r\n  const userClaims = await getUserClaims();\r\n  if (!userClaims) {\r\n    redirect(\"/\");\r\n  }\r\n  return <div>Welcome, {userClaims.user.email}</div>;\r\n}\r\n"],"names":[],"mappings":";;;;;AAAA;AAEA;AAAA;;;;AACe,eAAe;IAC5B,MAAM,aAAa,MAAM,IAAA,gIAAa;IACtC,IAAI,CAAC,YAAY;QACf,IAAA,iMAAQ,EAAC;IACX;IACA,qBAAO,8OAAC;;YAAI;YAAU,WAAW,IAAI,CAAC,KAAK;;;;;;;AAC7C"}}]
-}
