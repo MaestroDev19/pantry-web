@@ -43,7 +43,7 @@ export type CategoryEnum =
   | "Dairy & Eggs"
   | "Meat & Seafood"
   | "Bread & Grains"
-  | "Pantry"
+  | "Canned & Dry Goods"
   | "Frozen"
   | "Snacks & Beverages"
   | "Other";
