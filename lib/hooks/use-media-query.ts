@@ -15,9 +15,7 @@ export function useMediaQuery(query: string): boolean {
       return () => mql.removeEventListener("change", onChange)
     }
 
-    // eslint-disable-next-line deprecation/deprecation
     mql.addListener(onChange)
-    // eslint-disable-next-line deprecation/deprecation
     return () => mql.removeListener(onChange)
   }, [query])
 

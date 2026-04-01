@@ -1,10 +1,9 @@
 import type { Metadata } from "next"
-import { Figtree, Nunito } from "next/font/google"
+import { Nunito } from "next/font/google"
 import "./globals.css"
 import { Toaster } from "@/components/ui/sonner"
 import { ThemeProvider } from "@/components/themeProvider"
 
-const figtree = Figtree({ subsets: ["latin"], variable: "--font-sans" })
 const nunito = Nunito({ subsets: ["latin"], variable: "--font-sans" })
 export const metadata: Metadata = {
   title: "Pantry",

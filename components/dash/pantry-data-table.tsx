@@ -45,6 +45,8 @@ export function PantryDataTable<TData, TValue>({
     []
   )
 
+  // TanStack Table returns unstable function refs; React Compiler skips memoization (expected).
+  // eslint-disable-next-line react-hooks/incompatible-library -- useReactTable
   const table = useReactTable({
     data,
     columns,

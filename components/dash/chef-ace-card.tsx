@@ -3,7 +3,6 @@ import {
   ChefHatIcon,
   ClockIcon,
   FlameIcon,
-  RefreshCwIcon,
   SparklesIcon,
   UtensilsIcon,
 } from "lucide-react"
@@ -17,7 +16,6 @@ import {
 } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 
 // ---------------------------------------------------------------------------
 // Types
