@@ -90,7 +90,6 @@ function CardExample() {
             fill
             className="object-cover brightness-60 grayscale"
             sizes="(max-width: 24rem) 100vw, 24rem"
-            priority={false}
           />
         </div>
         <CardHeader>
