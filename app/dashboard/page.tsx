@@ -3,7 +3,7 @@ import { getDashboardData } from "@/lib/utils/dashboard";
 import { redirect } from "next/navigation";
 import { ActionsRequiredCard } from "@/components/dash/actions-required-card";
 import { RecentActivityCard } from "@/components/dash/recent-activity-card";
-import { ItemsByCategoryChart } from "@/components/dash/items-by-category-chart";
+import { ItemsByCategoryCard } from "@/components/dash/items-by-category-chart";
 import { ShoppingListCard } from "@/components/dash/shopping-list-card";
 import { ChefAceCard } from "@/components/dash/chef-ace-card";
 import { PantryHealthCard } from "@/components/dash/pantry-health-card";
@@ -29,7 +29,7 @@ export default async function DashboardPage() {
         <RecentActivityCard />
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-        <ItemsByCategoryChart />
+        <ItemsByCategoryCard />
         <ShoppingListCard />
         <ChefAceCard />
       </div>

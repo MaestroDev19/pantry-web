@@ -3,19 +3,9 @@
 import * as React from "react";
 import { useMemo } from "react";
 import { useAtom } from "jotai";
-import { atomWithStorage } from "jotai/utils";
 
 import { TypographyH2, TypographyP } from "@/components/ui/typography";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -40,37 +30,25 @@ import {
   Download,
   Clipboard,
   FileText,
-  FileType2,
 } from "lucide-react";
+import { ItemForm } from "@/components/dash/item-form";
+import { CATEGORY_OPTIONS } from "@/lib/types/shoppingtypes";
+import { type CategoryEnum, type UnitEnum } from "@/lib/types/pantrytypes";
+import { shoppingItemsAtom } from "@/lib/state/shopping-list";
+import { buildAisleGroupedText } from "@/lib/utils/shopping-list";
+import { downloadTextFile, copyToClipboard } from "@/lib/utils/browser";
+import { uuid } from "@/lib/utils/uuid";
+import { cn } from "@/lib/utils";
 
-export type ShoppingItem = {
-  id: string;
-  name: string;
-  category: string;
-  quantity: number;
-  bought: boolean;
-};
-
-const CATEGORY_OPTIONS: { value: string; label: string }[] = [
-  { value: "produce", label: "Produce" },
-  { value: "dairy-eggs", label: "Dairy & Eggs" },
-  { value: "meat-seafood", label: "Meat & Seafood" },
-  { value: "bread-grains", label: "Bread & Grains" },
-  { value: "canned-dry-goods", label: "Canned & Dry Goods" },
-  { value: "frozen", label: "Frozen" },
-  { value: "snacks-beverages", label: "Snacks & Beverages" },
-  { value: "other", label: "Other" },
-];
-
-export const shoppingItemsAtom = atomWithStorage<ShoppingItem[]>(
-  "shopping-list-items",
-  [],
-);
+const CATEGORY_BAR_BASE_OPACITY = 0.85;
+const CATEGORY_BAR_OPACITY_STEP = 0.1;
+const CATEGORY_BAR_MIN_OPACITY = 0.25;
 
 export default function ShoppingListPage() {
   const [itemName, setItemName] = React.useState("");
-  const [quantity, setQuantity] = React.useState<string>("1");
-  const [category, setCategory] = React.useState<string>("produce");
+  const [quantity, setQuantity] = React.useState<number>(1);
+  const [unit, setUnit] = React.useState<UnitEnum | undefined>(undefined);
+  const [category, setCategory] = React.useState<CategoryEnum>("Produce");
   const [items, setItems] = useAtom(shoppingItemsAtom);
 
   const handleAddItem = () => {
@@ -79,26 +57,30 @@ export default function ShoppingListPage() {
       return;
     }
 
-    const parsedQuantity = Number.parseInt(quantity, 10);
     const safeQuantity =
-      Number.isNaN(parsedQuantity) || parsedQuantity < 1 ? 1 : parsedQuantity;
+      Number.isFinite(quantity) && quantity > 0 ? quantity : 1;
 
     setItems((prev) => [
       ...prev,
       {
-        id: crypto.randomUUID(),
+        id: uuid(),
         name: trimmedName,
         category,
         quantity: safeQuantity,
+        unit,
         bought: false,
       },
     ]);
 
     setItemName("");
-    setQuantity("1");
+    setQuantity(1);
+    setUnit(undefined);
   };
 
-  const handleToggleBought = (id: string, checked: boolean | string) => {
+  const handleToggleBought = (
+    id: string,
+    checked: boolean | "indeterminate",
+  ) => {
     const isChecked = checked === true;
     setItems((prev) =>
       prev.map((item) =>
@@ -140,75 +122,14 @@ export default function ShoppingListPage() {
     [items, totalQuantity],
   );
 
-  const buildListText = () => {
-    const lines = items.map((item) => {
-      const categoryLabel =
-        CATEGORY_OPTIONS.find((option) => option.value === item.category)
-          ?.label ?? "Other";
-
-      const quantityLabel = item.quantity > 1 ? ` x${item.quantity}` : "";
-      const statusLabel = item.bought ? " (Purchased)" : " (To buy)";
-
-      return `- ${item.name}${quantityLabel} [${categoryLabel}]${statusLabel}`;
-    });
-
-    if (lines.length === 0) {
-      return "Shopping list is currently empty.";
-    }
-
-    return `Shopping List\n\n${lines.join("\n")}`;
-  };
-
-  const downloadTextFile = (content: string, filename: string) => {
-    if (typeof window === "undefined") return;
-
-    const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-  };
-
   const handleCopyToClipboard = async () => {
-    const content = buildListText();
-
-    if (navigator.clipboard?.writeText) {
-      await navigator.clipboard.writeText(content);
-      return;
-    }
-
-    const textarea = document.createElement("textarea");
-    textarea.value = content;
-    textarea.setAttribute("readonly", "");
-    textarea.style.position = "absolute";
-    textarea.style.left = "-9999px";
-    document.body.appendChild(textarea);
-    textarea.select();
-    document.execCommand("copy");
-    document.body.removeChild(textarea);
+    const content = buildAisleGroupedText(items);
+    await copyToClipboard(content);
   };
 
   const handleDownloadTxt = () => {
-    const content = buildListText();
+    const content = buildAisleGroupedText(items);
     downloadTextFile(content, "shopping-list.txt");
-  };
-
-  const handleDownloadPdf = () => {
-    if (typeof window === "undefined") return;
-
-    const content = buildListText();
-    const popup = window.open("", "_blank", "noopener,noreferrer");
-    if (!popup) return;
-
-    popup.document.write(
-      `<!doctype html><html><head><title>Shopping List</title></head><body><pre>${content}</pre></body></html>`,
-    );
-    popup.document.close();
-    popup.focus();
   };
 
   return (
@@ -223,70 +144,44 @@ export default function ShoppingListPage() {
 
         <div className="flex items-center gap-2">
           <Button
+            type="button"
             variant="outline"
             className="text-primary hover:text-primary hover:bg-primary/20 bg-primary/10 border-transparent shadow-none"
           >
-            <FileSpreadsheet className="size-4 mr-2" />
+            <FileSpreadsheet aria-hidden="true" className="size-4 mr-2" />
             Import CSV
           </Button>
-          <Button className="bg-gradient-to-r from-primary to-emerald-500 hover:opacity-90 text-primary-foreground border-transparent border-0 shadow-none transition-opacity">
-            <Sparkles className="size-4 mr-2" />
+          <Button
+            type="button"
+            className="bg-primary hover:opacity-90 text-primary-foreground border-transparent border-0 shadow-none transition-opacity"
+          >
+            <Sparkles aria-hidden="true" className="size-4 mr-2" />
             Generate AI List
           </Button>
         </div>
       </div>
 
-      <div className="flex flex-col sm:flex-row items-center gap-2 p-2 border rounded-xl bg-card shadow-sm">
-        <div className="relative flex-1 w-full flex items-center">
-          <Plus className="absolute left-3 size-4 text-muted-foreground" />
-          <Input
-            placeholder="Add item manually (e.g. “Avocados”)..."
-            className="pl-9 border-none shadow-none focus-visible:ring-0 bg-transparent"
-            value={itemName}
-            onChange={(event) => setItemName(event.target.value)}
-            onKeyDown={(event) => {
-              if (event.key === "Enter") {
-                event.preventDefault();
-                handleAddItem();
-              }
-            }}
-          />
+      <div className="flex flex-col gap-2 p-3 border rounded-xl bg-card shadow-sm">
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <Plus aria-hidden="true" className="size-4" />
+          <span>Add item</span>
         </div>
-
-        <Separator
-          orientation="vertical"
-          className="hidden sm:block h-8 opacity-50"
+        <ItemForm
+          name={itemName}
+          quantity={quantity}
+          unit={unit}
+          category={category}
+          onNameChange={setItemName}
+          onQuantityChange={setQuantity}
+          onUnitChange={setUnit}
+          onCategoryChange={setCategory}
+          onSubmit={handleAddItem}
         />
-
-        <div className="flex w-full sm:w-auto items-center gap-2 shrink-0">
-          <Input
-            type="number"
-            min={1}
-            value={quantity}
-            onChange={(event) => setQuantity(event.target.value)}
-            className="w-20 border-none shadow-none focus-visible:ring-0 bg-transparent text-sm"
-            placeholder="Qty"
-          />
-
-          <Select
-            value={category}
-            onValueChange={(value) => setCategory(value)}
-          >
-            <SelectTrigger className="w-full sm:w-[160px] border-none shadow-none focus:ring-0 bg-transparent text-muted-foreground">
-              <SelectValue placeholder="Category" />
-            </SelectTrigger>
-            <SelectContent align="start" position="popper" side="bottom">
-              {CATEGORY_OPTIONS.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
+        <div className="flex justify-end">
           <Button
             className="w-auto bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm"
             onClick={handleAddItem}
+            disabled={!itemName.trim()}
           >
             Add item
           </Button>
@@ -300,6 +195,7 @@ export default function ShoppingListPage() {
               Items
             </TypographyP>
             <Button
+              type="button"
               variant="ghost"
               size="sm"
               className="h-7 px-2 text-xs text-muted-foreground hover:text-destructive"
@@ -337,25 +233,31 @@ export default function ShoppingListPage() {
                       key={item.id}
                       className="flex items-center justify-between gap-3 rounded-lg px-2 py-1"
                     >
-                      <div className="flex items-center gap-2">
+                      <div className="flex min-w-0 items-center gap-2">
                         <Checkbox
                           checked={item.bought}
+                          aria-label={`Mark ${item.name} as ${item.bought ? "to buy" : "purchased"}`}
                           onCheckedChange={(checked) =>
                             handleToggleBought(item.id, checked)
                           }
                         />
-                        <div className="flex flex-col">
+                        <div className="flex min-w-0 flex-col">
                           <span
-                            className="text-sm"
-                            style={{
-                              textDecoration: item.bought
-                                ? "line-through"
-                                : "none",
-                              opacity: item.bought ? 0.6 : 1,
-                            }}
+                            className={cn(
+                              "text-sm wrap-break-word",
+                              item.bought && "line-through opacity-60",
+                            )}
                           >
                             {item.name}
-                            {item.quantity > 1 ? ` · x${item.quantity}` : null}
+                            {item.unit ? (
+                              <span className="text-muted-foreground ml-1">
+                                · {item.quantity} {item.unit}
+                              </span>
+                            ) : item.quantity > 1 ? (
+                              <span className="text-muted-foreground ml-1">
+                                · {item.quantity}
+                              </span>
+                            ) : null}
                           </span>
                           <span className="text-[11px] text-muted-foreground">
                             Status: {item.bought ? "Purchased" : "To buy"}
@@ -372,13 +274,14 @@ export default function ShoppingListPage() {
                         </Badge>
                         {!item.bought && (
                           <Button
+                            type="button"
                             variant="ghost"
                             size="icon"
                             className="h-7 w-7 text-muted-foreground hover:text-destructive"
                             onClick={() => handleRemoveItem(item.id)}
                             aria-label="Remove item"
                           >
-                            <Trash2 className="size-4" />
+                            <Trash2 aria-hidden="true" className="size-4" />
                           </Button>
                         )}
                       </div>
@@ -404,26 +307,24 @@ export default function ShoppingListPage() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
+                  type="button"
                   variant="outline"
                   size="icon"
                   className="h-8 w-8 border-dashed"
                   disabled={items.length === 0}
+                  aria-label="Download options"
                 >
-                  <Download className="size-4" />
+                  <Download aria-hidden="true" className="size-4" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-44">
                 <DropdownMenuItem onClick={handleCopyToClipboard}>
-                  <Clipboard className="mr-2 size-4" />
+                  <Clipboard aria-hidden="true" className="mr-2 size-4" />
                   <span>Copy to clipboard</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={handleDownloadTxt}>
-                  <FileText className="mr-2 size-4" />
+                  <FileText aria-hidden="true" className="mr-2 size-4" />
                   <span>Download .txt</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleDownloadPdf}>
-                  <FileType2 className="mr-2 size-4" />
-                  <span>Open PDF view</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -482,7 +383,12 @@ export default function ShoppingListPage() {
                               className="h-full rounded-full bg-primary"
                               style={{
                                 width: `${entry.percentage}%`,
-                                opacity: 0.85 - index * 0.1,
+                                opacity:
+                                Math.max(
+                                  CATEGORY_BAR_MIN_OPACITY,
+                                  CATEGORY_BAR_BASE_OPACITY -
+                                    index * CATEGORY_BAR_OPACITY_STEP,
+                                ),
                               }}
                             />
                           </div>

@@ -6,7 +6,7 @@ import {
   RefreshCwIcon,
   SparklesIcon,
   UtensilsIcon,
-} from "lucide-react";
+} from "lucide-react"
 import {
   Card,
   CardContent,
@@ -14,21 +14,21 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+} from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
 
 interface RecipeSuggestion {
-  name: string;
-  description: string;
-  cookTime: string;
-  difficulty: "Easy" | "Medium" | "Hard";
-  totalIngredients: number;
+  name: string
+  description: string
+  cookTime: string
+  difficulty: "Easy" | "Medium" | "Hard"
+  totalIngredients: number
 }
 
 // ---------------------------------------------------------------------------
@@ -42,7 +42,7 @@ const DEMO_RECIPE: RecipeSuggestion = {
   cookTime: "20 mins",
   difficulty: "Easy",
   totalIngredients: 8,
-};
+}
 
 // ---------------------------------------------------------------------------
 // Sub-components
@@ -52,10 +52,10 @@ const difficultyColor: Record<RecipeSuggestion["difficulty"], string> = {
   Easy: "text-primary",
   Medium: "text-warning",
   Hard: "text-destructive",
-};
+}
 
 function DifficultyIcon({ level }: { level: RecipeSuggestion["difficulty"] }) {
-  const count = level === "Easy" ? 1 : level === "Medium" ? 2 : 3;
+  const count = level === "Easy" ? 1 : level === "Medium" ? 2 : 3
   return (
     <span className={`flex items-center gap-0.5 ${difficultyColor[level]}`}>
       {Array.from({ length: 3 }).map((_, i) => (
@@ -65,7 +65,7 @@ function DifficultyIcon({ level }: { level: RecipeSuggestion["difficulty"] }) {
         />
       ))}
     </span>
-  );
+  )
 }
 
 // ---------------------------------------------------------------------------
@@ -75,10 +75,10 @@ function DifficultyIcon({ level }: { level: RecipeSuggestion["difficulty"] }) {
 export function ChefAceCard({
   recipe = DEMO_RECIPE,
 }: {
-  recipe?: RecipeSuggestion;
+  recipe?: RecipeSuggestion
 }) {
   return (
-    <Card className="border-border border-dashed flex flex-col">
+    <Card className="flex flex-col border-dashed border-border">
       {/* ── Header ────────────────────────────────────────────────────── */}
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-2">
@@ -96,34 +96,20 @@ export function ChefAceCard({
         </div>
 
         {/* Persona row */}
-        <div className="flex items-center gap-3 mt-3 p-3 rounded-lg bg-muted/50">
-          <Avatar size="lg">
-            <AvatarFallback className="bg-primary text-primary-foreground font-bold text-sm">
-              ACE
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex flex-col gap-0.5 min-w-0">
-            <p className="text-sm font-semibold leading-none">Chef ACE</p>
-            <p className="text-xs text-muted-foreground leading-snug">
-              "Today I'm suggesting something that uses most of what's already
-              in your pantry."
-            </p>
-          </div>
-        </div>
       </CardHeader>
 
-      <CardContent className="flex flex-col gap-4 flex-1">
+      <CardContent className="flex flex-1 flex-col gap-4">
         {/* ── Recipe hero ───────────────────────────────────────────────── */}
         <div className="flex flex-col gap-1.5">
-          <h3 className="font-semibold text-base leading-tight">
+          <h3 className="text-base leading-tight font-semibold">
             {recipe.name}
           </h3>
-          <p className="text-sm text-muted-foreground leading-relaxed">
+          <p className="text-sm leading-relaxed text-muted-foreground">
             {recipe.description}
           </p>
 
           {/* Meta badges */}
-          <div className="flex flex-wrap items-center gap-2 mt-1">
+          <div className="mt-1 flex flex-wrap items-center gap-2">
             <Badge variant="outline" className="gap-1.5 text-xs">
               <ClockIcon className="size-3" />
               {recipe.cookTime}
@@ -141,7 +127,7 @@ export function ChefAceCard({
       </CardContent>
 
       {/* ── Footer ────────────────────────────────────────────────────── */}
-      <CardFooter className="flex flex-col gap-2 ">
+      <CardFooter className="flex flex-col gap-2">
         <Button className="w-full" variant="default">
           <UtensilsIcon data-icon="inline-start" />
           Cook This
@@ -152,5 +138,5 @@ export function ChefAceCard({
         </Button>
       </CardFooter>
     </Card>
-  );
+  )
 }
