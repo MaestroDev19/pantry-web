@@ -34,39 +34,43 @@ function migrateShoppingItems(items: unknown): ShoppingItem[] {
     return [];
   }
 
-  return items
-    .map((raw) => {
-      if (!raw || typeof raw !== "object") {
-        return null;
-      }
+  return items.flatMap((raw): ShoppingItem[] => {
+    if (!raw || typeof raw !== "object") {
+      return [];
+    }
 
-      const candidate = raw as Partial<ShoppingItem> & { category?: unknown };
-      const categoryRaw = candidate.category;
+    const candidate = raw as Partial<ShoppingItem> & { category?: unknown };
+    const categoryRaw = candidate.category;
 
-      const migratedCategory =
-        typeof categoryRaw === "string"
-          ? (CATEGORY_SLUG_MIGRATION_MAP[categoryRaw] ?? categoryRaw)
-          : "Other";
+    const migratedCategory =
+      typeof categoryRaw === "string"
+        ? (CATEGORY_SLUG_MIGRATION_MAP[categoryRaw] ?? categoryRaw)
+        : "Other";
 
-      if (!VALID_CATEGORIES.has(migratedCategory as CategoryEnum)) {
-        return null;
-      }
+    if (!VALID_CATEGORIES.has(migratedCategory as CategoryEnum)) {
+      return [];
+    }
 
-      const unit = normalizeUnit((raw as Record<string, unknown>).unit);
+    const unit = normalizeUnit((raw as Record<string, unknown>).unit);
 
-      return {
-        id: typeof candidate.id === "string" ? candidate.id : uuid(),
-        name: typeof candidate.name === "string" ? candidate.name : "",
-        category: migratedCategory as CategoryEnum,
-        quantity:
-          typeof candidate.quantity === "number" && Number.isFinite(candidate.quantity)
-            ? candidate.quantity
-            : 1,
-        unit,
-        bought: candidate.bought === true,
-      } satisfies ShoppingItem;
-    })
-    .filter((item): item is ShoppingItem => Boolean(item?.name));
+    const item: ShoppingItem = {
+      id: typeof candidate.id === "string" ? candidate.id : uuid(),
+      name: typeof candidate.name === "string" ? candidate.name : "",
+      category: migratedCategory as CategoryEnum,
+      quantity:
+        typeof candidate.quantity === "number" && Number.isFinite(candidate.quantity)
+          ? candidate.quantity
+          : 1,
+      unit,
+      bought: candidate.bought === true,
+    };
+
+    if (!item.name) {
+      return [];
+    }
+
+    return [item];
+  });
 }
 
 export const shoppingItemsAtom = atomWithStorage<ShoppingItem[]>(
