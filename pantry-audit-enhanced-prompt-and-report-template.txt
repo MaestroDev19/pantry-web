@@ -1,0 +1,176 @@
+================================================================================
+PANTRY APP — ENHANCED AUDIT / CRITIQUE / SWOT PROMPT + REPORT TEMPLATE
+================================================================================
+Purpose: Copy the "ENHANCED MASTER PROMPT" below into a new chat or agent run
+to perform a full codebase + product audit. This file does NOT contain audit
+results — only the structured prompt and empty report outlines.
+
+Project context (for reviewers — verify against repo):
+- Name: Pantry Web (frontend for Pantry FastAPI backend)
+- Stack: Next.js App Router (16+), React 19, TypeScript, Tailwind CSS v4,
+  shadcn/ui / Radix, Supabase Auth, TanStack Form + Zod, Bun
+- Domains: household pantry, recipes, shopping lists, Chef ACE (planned AI)
+
+================================================================================
+SECTION 1 — ENHANCED MASTER PROMPT (COPY EVERYTHING BETWEEN THE LINES)
+================================================================================
+
+---BEGIN ENHANCED PROMPT---
+
+You are a **principal software engineer** and **senior product designer** conducting a structured audit of the **Pantry** web application repository.
+
+**Audit mode:** Read-only analysis of the actual codebase and product surfaces. Do not modify files unless explicitly asked in a separate instruction.
+
+**Project baseline (verify in repo):**
+- Frontend: Next.js (App Router), TypeScript, Tailwind v4, Supabase for auth
+- Stated goals: pantry management, recipe discovery from inventory, shopping lists, optional AI (Chef ACE)
+- README may describe roadmap vs implemented — distinguish **implemented** vs **planned** using code evidence
+
+**Your deliverable is TWO separate narrative reports in one response (clearly titled):**
+
+---
+
+## REPORT A — CODEBASE & ENGINEERING
+
+Produce a detailed report covering, with **file/path references** where applicable:
+
+1. **Architecture & structure**
+   - App Router layout: routes, layouts, loading/error boundaries, middleware
+   - Separation of concerns: server vs client components, data layer, UI layer
+   - Configuration: env handling, build, TypeScript strictness, linting
+
+2. **Code quality & principles**
+   - Consistency with SOLID, DRY, KISS; error handling patterns
+   - Type safety: `any`, assertions, Zod usage at boundaries
+   - Testing: presence/absence of unit, integration, e2e tests; critical gaps
+
+3. **Security & vulnerabilities (threat-oriented)**
+   - Auth/session: Supabase SSR patterns, cookie handling, middleware protection
+   - Secrets: `.env` usage, client-exposed keys, server-only data
+   - Input validation: forms, API route handlers, SQL/Supabase usage
+   - Dependencies: known risk patterns (pinning, outdated critical packages) — note scope limits of static review
+   - OWASP-style checklist: injection, XSS, CSRF (where relevant), authz on resources
+
+4. **Performance & scalability**
+   - Bundle: heavy client components, dynamic imports opportunities
+   - Data fetching: caching, waterfalls, server component usage
+   - Images, fonts, charts — load cost
+
+5. **Accessibility & web standards (technical)**
+   - Semantic HTML, Radix/shadcn patterns, focus management in custom UI
+
+6. **Maintainability & operations**
+   - Documentation vs code drift; onboarding friction
+   - CI/CD signals if present in repo
+
+7. **SWOT — CODEBASE lens**
+   - **Strengths:** What is unusually strong or production-grade?
+   - **Weaknesses:** Structural debt, risk hotspots, missing practices?
+   - **Opportunities:** Refactors, tooling, patterns that would raise quality?
+   - **Threats:** Security, scaling, or complexity risks if unchanged?
+
+**Rules for Report A:**
+- Prefer **evidence**: cite routes, components, or config files.
+- Mark **inferences** clearly when you cannot verify without running the app.
+- End with **prioritized recommendations** (P0/P1/P2).
+
+---
+
+## REPORT B — PRODUCT & USER EXPERIENCE
+
+Produce a detailed report covering:
+
+1. **Value proposition & positioning**
+   - Fit between stated goals (README/marketing) and what the UI actually delivers
+   - Differentiation vs generic “recipe” or “grocery” apps
+
+2. **Information architecture & navigation**
+   - Dashboard shell, hierarchy, discoverability of core tasks
+   - Mobile vs desktop usability of main flows
+
+3. **Core user journeys (critique)**
+   - Onboarding / auth / household membership
+   - Pantry health / inventory mental model (as implemented)
+   - Gaps for shopping list and Chef ACE if still WIP — call out UX risks of partial features
+
+4. **UI/UX quality**
+   - Visual hierarchy, consistency with design system (OKLCH, theme, dark mode)
+   - Feedback: loading, empty, error states; copy tone
+   - Cognitive load: clutter, jargon, steps to complete primary tasks
+
+5. **Feature completeness vs roadmap**
+   - Clear table: Feature | Status (evidence-based) | User impact
+
+6. **SWOT — PRODUCT lens**
+   - **Strengths:** Delight, clarity, trust, speed
+   - **Weaknesses:** Confusion, missing states, weak differentiation in UI
+   - **Opportunities:** UX wins, onboarding, social/household, AI disclosure
+   - **Threats:** Competitors, trust in AI suggestions, scope creep
+
+**Rules for Report B:**
+- Separate **heuristic critique** from **user research** — you do not have real user data unless provided; label assumptions.
+- If possible, note **accessibility from a UX perspective** (plain language, error recovery) in addition to technical a11y in Report A.
+
+---
+
+**Closing:** Provide a **single executive summary** (max 15 bullet points) spanning both reports, then **top 10 actions** sorted by impact/effort.
+
+---END ENHANCED PROMPT---
+
+================================================================================
+SECTION 2 — EMPTY REPORT TEMPLATE (FILL IN AFTER RUNNING THE PROMPT)
+================================================================================
+
+You can duplicate this section into a separate .txt after an audit completes.
+
+--------------------------------------------------------------------------------
+PANTRY — CODEBASE AUDIT REPORT
+Date:
+Reviewer:
+Commit / branch (optional):
+
+1. Executive summary (code)
+2. Architecture & structure
+3. Code quality & principles
+4. Security & vulnerabilities
+5. Performance & scalability
+6. Accessibility (technical)
+7. Maintainability & operations
+8. SWOT (codebase)
+9. Prioritized recommendations (P0 / P1 / P2)
+10. File index (key paths cited)
+
+--------------------------------------------------------------------------------
+PANTRY — PRODUCT & UX AUDIT REPORT
+Date:
+Reviewer:
+Commit / branch (optional):
+
+1. Executive summary (product)
+2. Value proposition & positioning
+3. Information architecture & navigation
+4. Core user journeys
+5. UI/UX quality
+6. Feature completeness vs roadmap
+7. SWOT (product)
+8. Assumptions & open questions
+9. Prioritized UX recommendations
+
+--------------------------------------------------------------------------------
+CROSS-CUTTING
+Executive summary (combined):
+Top 10 actions (impact / effort):
+
+================================================================================
+SECTION 3 — PROMPT VARIANTS (OPTIONAL SHORTCUTS)
+================================================================================
+
+**Security-only slice:** Use REPORT A sections 3–4 + SWOT security-related items only.
+
+**UX-only slice:** Use REPORT B only + Product SWOT.
+
+**Quick pass:** Ask for executive summary + SWOT (both lenses) + top 10 actions, no file citations (faster, less rigorous).
+
+================================================================================
+END OF FILE
+================================================================================

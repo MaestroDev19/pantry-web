@@ -50,6 +50,22 @@ export default function ShoppingListPage() {
   const [unit, setUnit] = React.useState<UnitEnum | undefined>(undefined);
   const [category, setCategory] = React.useState<CategoryEnum>("Produce");
   const [items, setItems] = useAtom(shoppingItemsAtom);
+  const [lastUpdatedAt, setLastUpdatedAt] = React.useState("");
+  const [mounted, setMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  React.useEffect(() => {
+    if (!mounted) return;
+    setLastUpdatedAt(
+      new Date().toLocaleString(undefined, {
+        dateStyle: "medium",
+        timeStyle: "short",
+      }),
+    );
+  }, [items, mounted]);
 
   const handleAddItem = () => {
     const trimmedName = itemName.trim();
@@ -142,10 +158,13 @@ export default function ShoppingListPage() {
           </TypographyP>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Button
             type="button"
             variant="outline"
+            disabled
+            title="Coming soon"
+            aria-label="Import CSV (coming soon)"
             className="text-primary hover:text-primary hover:bg-primary/20 bg-primary/10 border-transparent shadow-none"
           >
             <FileSpreadsheet aria-hidden="true" className="size-4 mr-2" />
@@ -153,6 +172,9 @@ export default function ShoppingListPage() {
           </Button>
           <Button
             type="button"
+            disabled
+            title="Coming soon"
+            aria-label="Generate AI list (coming soon)"
             className="bg-primary hover:opacity-90 text-primary-foreground border-transparent border-0 shadow-none transition-opacity"
           >
             <Sparkles aria-hidden="true" className="size-4 mr-2" />
@@ -401,7 +423,9 @@ export default function ShoppingListPage() {
 
               <div className="mt-1 flex items-center justify-between text-[11px] text-muted-foreground">
                 <span>Last updated</span>
-                <span>Just now</span>
+                <span suppressHydrationWarning>
+                  {mounted ? lastUpdatedAt : "—"}
+                </span>
               </div>
             </>
           )}

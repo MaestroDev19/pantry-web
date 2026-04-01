@@ -1,9 +1,9 @@
-"use client";
+"use client"
 
-import * as React from "react";
+import * as React from "react"
 
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import {
   Select,
   SelectContent,
@@ -13,36 +13,39 @@ import {
   SelectSeparator,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { type UnitEnum, UNIT_OPTIONS } from "@/lib/types/pantrytypes";
-import { CATEGORY_OPTIONS } from "@/lib/types/shoppingtypes";
-import { type CategoryEnum } from "@/lib/types/pantrytypes";
+} from "@/components/ui/select"
+import { type UnitEnum, UNIT_OPTIONS } from "@/lib/types/pantrytypes"
+import { CATEGORY_OPTIONS } from "@/lib/types/shoppingtypes"
+import { type CategoryEnum } from "@/lib/types/pantrytypes"
 
 type Props = {
-  quantity: number;
-  unit: UnitEnum | undefined;
-  category: CategoryEnum;
-  name: string;
-  onQuantityChange: (v: number) => void;
-  onUnitChange: (v: UnitEnum | undefined) => void;
-  onCategoryChange: (v: CategoryEnum) => void;
-  onNameChange: (v: string) => void;
-  onSubmit?: () => void;
-};
-
-const UNIT_NONE_VALUE = "__none__";
-
-function groupUnits() {
-  const map = new Map<string, { value: UnitEnum; label: string; group: string }[]>();
-  for (const unit of UNIT_OPTIONS) {
-    const list = map.get(unit.group) ?? [];
-    list.push(unit);
-    map.set(unit.group, list);
-  }
-  return Array.from(map.entries());
+  quantity: number
+  unit: UnitEnum | undefined
+  category: CategoryEnum
+  name: string
+  onQuantityChange: (v: number) => void
+  onUnitChange: (v: UnitEnum | undefined) => void
+  onCategoryChange: (v: CategoryEnum) => void
+  onNameChange: (v: string) => void
+  onSubmit?: () => void
 }
 
-const UNIT_GROUPS = groupUnits();
+const UNIT_NONE_VALUE = "__none__"
+
+function groupUnits() {
+  const map = new Map<
+    string,
+    { value: UnitEnum; label: string; group: string }[]
+  >()
+  for (const unit of UNIT_OPTIONS) {
+    const list = map.get(unit.group) ?? []
+    list.push(unit)
+    map.set(unit.group, list)
+  }
+  return Array.from(map.entries())
+}
+
+const UNIT_GROUPS = groupUnits()
 
 export function ItemForm({
   quantity,
@@ -56,9 +59,12 @@ export function ItemForm({
   onSubmit,
 }: Props) {
   return (
-    <div className="grid grid-cols-3 gap-2 items-end w-full">
+    <div className="grid w-full grid-cols-3 items-end gap-2">
       <div className="col-span-3 flex flex-col gap-1">
-        <Label className="text-xs text-muted-foreground" htmlFor="shopping-item-name">
+        <Label
+          className="text-xs text-muted-foreground"
+          htmlFor="shopping-item-name"
+        >
           Item name
         </Label>
         <Input
@@ -69,8 +75,8 @@ export function ItemForm({
           className="h-9"
           onKeyDown={(e) => {
             if (e.key === "Enter" && onSubmit) {
-              e.preventDefault();
-              onSubmit();
+              e.preventDefault()
+              onSubmit()
             }
           }}
         />
@@ -90,21 +96,26 @@ export function ItemForm({
           step={0.1}
           value={Number.isFinite(quantity) ? String(quantity) : "1"}
           onChange={(e) => {
-            const next = Number.parseFloat(e.target.value);
-            onQuantityChange(Number.isFinite(next) && next > 0 ? next : 1);
+            const next = Number.parseFloat(e.target.value)
+            onQuantityChange(Number.isFinite(next) && next > 0 ? next : 1)
           }}
           className="h-9"
         />
       </div>
 
       <div className="flex flex-col gap-1">
-        <Label className="text-xs text-muted-foreground" htmlFor="shopping-item-unit">
+        <Label
+          className="text-xs text-muted-foreground"
+          htmlFor="shopping-item-unit"
+        >
           Unit
         </Label>
         <Select
           value={unit ?? UNIT_NONE_VALUE}
           onValueChange={(value) =>
-            onUnitChange(value === UNIT_NONE_VALUE ? undefined : (value as UnitEnum))
+            onUnitChange(
+              value === UNIT_NONE_VALUE ? undefined : (value as UnitEnum)
+            )
           }
         >
           <SelectTrigger id="shopping-item-unit" className="h-9 w-full">
@@ -137,7 +148,13 @@ export function ItemForm({
         >
           Category
         </Label>
-        <Select value={category} onValueChange={(value) => onCategoryChange(value)}>
+        <Select
+          value={category}
+          onValueChange={(value) => {
+            const next = CATEGORY_OPTIONS.find((o) => o.value === value)?.value
+            onCategoryChange(next ?? "Other")
+          }}
+        >
           <SelectTrigger id="shopping-item-category" className="h-9 w-full">
             <SelectValue placeholder="Category" />
           </SelectTrigger>
@@ -151,6 +168,5 @@ export function ItemForm({
         </Select>
       </div>
     </div>
-  );
+  )
 }
-

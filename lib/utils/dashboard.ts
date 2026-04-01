@@ -1,10 +1,14 @@
 import { cache } from "react";
 
+import {
+  checkForHouseholdMembership,
+  type HouseholdCheckResult,
+} from "@/lib/checks/household";
 import { getUserClaims, getUserProfile } from "@/lib/dal/auth";
-import { checkForHouseholdMembership } from "@/lib/checks/household";
 
 export interface DashboardData {
   userProfile: NonNullable<Awaited<ReturnType<typeof getUserProfile>>>;
+  householdCheck: HouseholdCheckResult;
 }
 
 export const getDashboardData = cache(
@@ -14,14 +18,13 @@ export const getDashboardData = cache(
 
     const userId = userClaims.user.id;
 
-    const [userProfile] = await Promise.all([
+    const [userProfile, householdCheck] = await Promise.all([
       getUserProfile(userId),
-      // best-effort side effect; dashboard data does not depend on its result
       checkForHouseholdMembership(userId),
     ]);
 
     if (!userProfile) return null;
 
-    return { userProfile };
+    return { userProfile, householdCheck };
   },
 );

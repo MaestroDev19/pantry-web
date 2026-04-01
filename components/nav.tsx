@@ -50,10 +50,12 @@ export function NavBar({ data }: { data: DashboardData }) {
               <Button variant="ghost" size="icon" className="rounded-full">
                 <Avatar size="default">
                   <AvatarImage
-                    src="https://github.com/shadcn.png"
-                    alt="shadcn"
+                    src={profile.avatar_url ?? undefined}
+                    alt={profile.full_name ?? "Account"}
                   />
-                  <AvatarFallback>CN</AvatarFallback>
+                  <AvatarFallback>
+                    {profile.full_name?.charAt(0) ?? "?"}
+                  </AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>

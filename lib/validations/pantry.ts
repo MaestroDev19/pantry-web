@@ -1,40 +1,46 @@
-import { z } from "zod";
+import { z } from "zod"
+
+const UNIT_ENUM = z.enum([
+  "kg",
+  "g",
+  "mg",
+  "lb",
+  "oz",
+  "L",
+  "mL",
+  "gal",
+  "cup",
+  "tbsp",
+  "tsp",
+  "pieces",
+  "items",
+  "can",
+  "bottle",
+  "box",
+  "bag",
+  "pack",
+] as const)
 
 export const addItemSchema = z.object({
   name: z.string().min(1, { message: "Name is required" }),
   category: z.enum([
+    "Dairy",
     "Produce",
-    "Dairy & Eggs",
     "Meat & Seafood",
-    "Bread & Grains",
-    "Canned & Dry Goods",
+    "Grains & Pasta",
+    "Canned Goods",
     "Frozen",
-    "Snacks & Beverages",
+    "Snacks",
+    "Beverages",
+    "Condiments & Oils",
+    "Baking",
     "Other",
   ] as const),
   quantity: z.number().min(1, { message: "Quantity is required" }),
-  unit: z.enum([
-    "kg",
-    "g",
-    "mg",
-    "lb",
-    "oz",
-    "L",
-    "mL",
-    "gal",
-    "cup",
-    "tbsp",
-    "tsp",
-    "pieces",
-    "items",
-    "can",
-    "bottle",
-    "box",
-    "bag",
-    "pack",
-  ] as const),
-  expiry_date: z.string().min(1, { message: "Expiry date is required" }),
-  expiry_visible: z.boolean().optional().default(false),
-});
+  unit: z.union([UNIT_ENUM, z.undefined()]),
+  expiry_date: z.string(),
+  expiry_visible: z.boolean(),
+})
 
-export type AddItemFormValues = z.infer<typeof addItemSchema>;
+export type AddItemFormInputValues = z.input<typeof addItemSchema>
+export type AddItemFormValues = z.infer<typeof addItemSchema>

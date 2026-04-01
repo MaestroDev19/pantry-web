@@ -1,8 +1,8 @@
 # 🥗 Pantry Web Application
 
-![Next.js](https://img.shields.io/badge/Next.js-14+-black?style=for-the-badge&logo=next.js)
+![Next.js](https://img.shields.io/badge/Next.js-16+-black?style=for-the-badge&logo=next.js)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue?style=for-the-badge&logo=typescript)
-![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.4+-38B2AC?style=for-the-badge&logo=tailwind-css)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4+-38B2AC?style=for-the-badge&logo=tailwind-css)
 ![Supabase](https://img.shields.io/badge/Supabase-Auth/DB-3ECF8E?style=for-the-badge&logo=supabase)
 
 Welcome to the **Pantry Web Application** frontend repository! This is a modern, type-safe, and highly responsive web application built to help users manage their household pantries, discover recipes based on their inventory, and seamlessly generate shopping lists.
@@ -36,7 +36,7 @@ Pantry Web is built on a modern, React-centric stack focusing on performance, de
 - **Styling**: [Tailwind CSS v4](https://tailwindcss.com/) - Utility-first styling with a custom OKLCH color system defined in `globals.css` for vibrant, consistent theming (including flawless Dark Mode support).
 - **UI Architecture**: [shadcn/ui](https://ui.shadcn.com/) & [Radix UI](https://www.radix-ui.com/) - Accessible, unstyled primitives combined with Tailwind for a bespoke but standardized component library.
 - **Form Handling**: [@tanstack/react-form](https://tanstack.com/form/latest) paired with [Zod](https://zod.dev/) for robust, type-safe client and server validation.
-- **Authentication**: [Supabase Auth](https://supabase.com/docs/guides/auth) - Handled through Next.js middleware and secure Server Actions.
+- **Authentication**: [Supabase Auth](https://supabase.com/docs/guides/auth) - Session refresh and protected routes use `proxy.ts` (Next.js 16 request proxy) with `lib/supabase/proxy.ts`, plus secure Server Actions.
 - **Package Manager**: [Bun](https://bun.sh/) - For lightning-fast dependency resolution and script execution.
 
 ---
@@ -56,7 +56,7 @@ Pantry Web has completed its foundational UI layout and Authentication systems.
 - **PKCE Password Management**: Full password reset email flows utilizing secure PKCE exchanges.
 - **Protected Dashboard Shell**: A responsive sidebar/header layout (`app/dashboard/layout.tsx`) that acts as the control center, verifying auth and household membership automatically.
 - **Pantry Health Dashboard**: Visual overviews of pantry status, including expiration warnings, fresh item counts, and recent activity trackers.
-- **Account & Profile Management**: Complete UI for managing user details, passwords, and preferences.
+- **Account & Profile Management**: Password reset and update flows under `app/auth/`; full account settings UI is planned.
 - **Responsive UI Foundations**: A complete suite of reusable UI components ranging from sophisticated Charts (`recharts`) to mobile-friendly Drawers.
 
 ### 🚧 WIP / Planned
@@ -131,37 +131,32 @@ Pantry Web utilizes a feature-based folder structure heavily organized around th
 ```text
 app/
  ├── (auth)/                  # Route group for unauthenticated flows
- │   ├── layout.tsx           # Brand-centric split screen or centered card layout
- │   ├── page.tsx             # Standard Login interface
- │   └── signup/              # Registration interface
- ├── auth/                    # Auth callback handling
- │   ├── confirm/             # Supabase OTP verification endpoint
- │   ├── reset-password/      # Request password reset emails
- │   └── update-password/     # Securely set new password via PKCE
- ├── dashboard/               # Main authenticated application shell
- │   ├── layout.tsx           # Sidebar, Nav headers, Server-side role checks
- │   ├── page.tsx             # Main dashboard overview metrics
- │   ├── account/             # User settings and profile configuration
- │   └── shopping-list/       # Grocery management interface
- ├── globals.css              # Global styles, OKLCH variables, shadcn preset
- └── layout.tsx               # Root DOM layout, fonts, and global providers
+ │   ├── layout.tsx
+ │   ├── page.tsx             # Login
+ │   └── signup/              # Registration
+ ├── auth/                    # Auth callbacks (OTP confirm, password flows)
+ │   └── confirm/
+ ├── dashboard/               # Authenticated shell (nav, household status)
+ │   ├── layout.tsx
+ │   ├── page.tsx             # Dashboard overview
+ │   ├── pantry/              # Pantry UI
+ │   ├── recipes/             # Recipes placeholder / future Chef ACE
+ │   └── shopping-list/       # Shopping list
+ ├── globals.css
+ └── layout.tsx               # Root layout, fonts, providers
 
 components/
- ├── auth/                    # Login/Signup forms wrapped with TanStack Form
- ├── dash/                    # Dashboard-specific widgets (Charts, Health Cards)
- ├── ui/                      # Generic, highly reusable base components (shadcn)
- ├── app-sidebar.tsx          # Main navigation drawer/sidebar
- └── theme-toggler.tsx        # Light/Dark mode interaction
+ ├── auth/
+ ├── dash/
+ ├── nav.tsx                  # Dashboard navigation
+ └── ui/
 
 lib/
- ├── checks/                  # Server-side auth gating (profile, household)
- ├── supabase/                # Clients for SSR, CSR, and Middleware proxies
- ├── types/                   # Shared TypeScript definitions (e.g. `pantrytypes.ts`)
- ├── validations/             # Zod schemas defining data shapes
- └── utils.ts                 # Class merging (`cn`) and formatting helpers
+ ├── checks/                  # Profile & household checks
+ ├── supabase/                # SSR / browser clients; proxy session helper
+ └── ...
 
-hooks/                        # Custom React Hooks (e.g., `use-mobile`)
-middleware.ts                 # Edge-compatible Next.js routing middleware
+proxy.ts                      # Next.js 16 proxy entry (session refresh, auth redirects)
 ```
 
 ---
@@ -170,8 +165,8 @@ middleware.ts                 # Edge-compatible Next.js routing middleware
 
 Authentication is a critical layer of the Pantry app, deeply integrated with Supabase.
 
-1. **Middleware Pre-flight**: The `middleware.ts` intercepts requests to protected routes (`/dashboard/*`). It utilizes `lib/supabase/proxy.ts` to refresh expired tokens and ensure an active session exists before rendering even begins.
-2. **Server-Side Checks**: In `app/dashboard/layout.tsx`, `lib/checks/profile.ts` and `lib/checks/household.ts` run to ensure the user has completed onboarding (e.g., has an associated Household in the database). If not, they are redirected appropriately.
+1. **Proxy pre-flight**: `proxy.ts` runs on matched routes and delegates to `lib/supabase/proxy.ts` to refresh Supabase cookies and redirect unauthenticated users away from protected areas.
+2. **Dashboard layout**: `app/dashboard/layout.tsx` loads user profile data via `getDashboardData()` and shows a banner when household setup cannot complete (e.g. missing `NEXT_PUBLIC_PANTRY_API_URL` or API errors). It does not redirect solely for missing household; the banner explains next steps.
 3. **PKCE Password Flow**: 
    - User requests a reset -> Supabase emails a secure magic link.
    - User clicks link -> Redirects to our Next.js app, which exchanges the code for a session.

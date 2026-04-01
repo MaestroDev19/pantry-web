@@ -1,6 +1,8 @@
 export interface PantryItem {
   id: string;
   owner_id: string | null;
+  /** Household pantry list: from profiles when owner is in household_members */
+  owner_name?: string | null;
   household_id: string | null;
   name: string;
   category: CategoryEnum;

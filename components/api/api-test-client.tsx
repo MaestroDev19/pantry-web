@@ -85,7 +85,7 @@ async function callApi(opts: {
 }
 
 export default function ApiTestClient() {
-  const apiBaseUrl = useMemo(() => getApiBaseUrl() ?? "", []);
+  const apiBaseUrl = useMemo(() => getApiBaseUrl(), []);
 
   const [baseUrl, setBaseUrl] = useState(apiBaseUrl);
   const [path, setPath] = useState("/health");
@@ -230,19 +230,19 @@ export default function ApiTestClient() {
           <Button
             variant="secondary"
             onClick={() => {
-              setPath("/pantry/household-items");
+              setPath("/api/pantry-items/get-household-pantry");
               setMethod("GET");
               setIncludeAuth(true);
             }}
             disabled={isLoading}
           >
-            Quick: GET /pantry/household-items
+            Quick: GET /api/pantry-items/get-household-pantry
           </Button>
 
           <Button
             variant="secondary"
             onClick={() => {
-              setPath("/pantry/add-item");
+              setPath("/api/pantry-items/add-single-item");
               setMethod("POST");
               setIncludeAuth(true);
               setBodyText(
@@ -250,11 +250,8 @@ export default function ApiTestClient() {
                   {
                     name: "Test Worker Item",
                     quantity: 1,
-                    unit: "pieces",
-                    category: "Other",
-                    notes: "Created from /api-test add-item button",
-                    // Backend model uses `expiry_date` (optional) and `expiry_visible` (default true).
-                    // Keeping this payload minimal so enum validation passes and the insert triggers the worker.
+                    unit: "piece",
+                    category: "other",
                   },
                   null,
                   2,
@@ -263,7 +260,7 @@ export default function ApiTestClient() {
             }}
             disabled={isLoading}
           >
-            Quick: POST /pantry/add-item
+            Quick: POST /api/pantry-items/add-single-item
           </Button>
         </div>
       </Card>
