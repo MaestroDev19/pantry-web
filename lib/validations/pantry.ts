@@ -37,7 +37,7 @@ export const addItemSchema = z.object({
     "Other",
   ] as const),
   quantity: z.number().min(1, { message: "Quantity is required" }),
-  unit: z.union([UNIT_ENUM, z.undefined()]),
+  unit: UNIT_ENUM.optional(),
   expiry_date: z.string(),
   expiry_visible: z.boolean(),
 })

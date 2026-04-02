@@ -7,21 +7,7 @@ import {
 const QTY_COLUMN_WIDTH = 6;
 
 function formatQuantity(item: ShoppingItem): string {
-  if (!item.unit) {
-    return `${item.quantity}`;
-  }
-
-  const COUNT_UNITS = new Set(["pieces", "items", "can", "bottle", "box", "bag", "pack"]);
-  const unitLabel =
-    COUNT_UNITS.has(item.unit) && item.quantity !== 1
-      ? item.unit
-      : item.unit === "pieces" && item.quantity === 1
-        ? "piece"
-        : item.unit === "items" && item.quantity === 1
-          ? "item"
-          : item.unit;
-
-  return `${item.quantity} ${unitLabel}`;
+  return `${item.quantity}`;
 }
 
 export function buildListText(

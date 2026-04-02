@@ -33,7 +33,7 @@ import {
 } from "lucide-react";
 import { ItemForm } from "@/components/dash/item-form";
 import { CATEGORY_OPTIONS } from "@/lib/types/shoppingtypes";
-import { type CategoryEnum, type UnitEnum } from "@/lib/types/pantrytypes";
+import { type CategoryEnum } from "@/lib/types/pantrytypes";
 import { shoppingItemsAtom } from "@/lib/state/shopping-list";
 import { buildAisleGroupedText } from "@/lib/utils/shopping-list";
 import { downloadTextFile, copyToClipboard } from "@/lib/utils/browser";
@@ -47,7 +47,6 @@ const CATEGORY_BAR_MIN_OPACITY = 0.25;
 export default function ShoppingListPage() {
   const [itemName, setItemName] = React.useState("");
   const [quantity, setQuantity] = React.useState<number>(1);
-  const [unit, setUnit] = React.useState<UnitEnum | undefined>(undefined);
   const [category, setCategory] = React.useState<CategoryEnum>("Produce");
   const [items, setItems] = useAtom(shoppingItemsAtom);
   const [lastUpdatedAt, setLastUpdatedAt] = React.useState("");
@@ -83,14 +82,12 @@ export default function ShoppingListPage() {
         name: trimmedName,
         category,
         quantity: safeQuantity,
-        unit,
         bought: false,
       },
     ]);
 
     setItemName("");
     setQuantity(1);
-    setUnit(undefined);
   };
 
   const handleToggleBought = (
@@ -191,11 +188,9 @@ export default function ShoppingListPage() {
         <ItemForm
           name={itemName}
           quantity={quantity}
-          unit={unit}
           category={category}
           onNameChange={setItemName}
           onQuantityChange={setQuantity}
-          onUnitChange={setUnit}
           onCategoryChange={setCategory}
           onSubmit={handleAddItem}
         />
@@ -271,15 +266,9 @@ export default function ShoppingListPage() {
                             )}
                           >
                             {item.name}
-                            {item.unit ? (
-                              <span className="text-muted-foreground ml-1">
-                                · {item.quantity} {item.unit}
-                              </span>
-                            ) : item.quantity > 1 ? (
-                              <span className="text-muted-foreground ml-1">
-                                · {item.quantity}
-                              </span>
-                            ) : null}
+                            <span className="text-muted-foreground ml-1">
+                              · {item.quantity}
+                            </span>
                           </span>
                           <span className="text-[11px] text-muted-foreground">
                             Status: {item.bought ? "Purchased" : "To buy"}

@@ -102,19 +102,14 @@ export const pantryColumns: ColumnDef<PantryItem>[] = [
   {
     id: "amount",
     accessorFn: (row) => {
-      const q = row.quantity
-      const u = row.unit
-      if (q == null && (u == null || u === "")) return ""
-      return `${q ?? "—"} ${u ?? ""}`.trim()
+      return row.quantity ?? null
     },
     header: "Quantity",
     cell: ({ row }) => {
       const q = row.original.quantity
-      const u = row.original.unit
       return (
         <span className="text-muted-foreground tabular-nums">
           {q != null ? String(q) : "—"}
-          {u ? ` ${String(u)}` : ""}
         </span>
       )
     },

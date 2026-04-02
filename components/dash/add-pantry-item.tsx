@@ -15,13 +15,12 @@ import {
   FieldLabel,
   FieldDescription,
 } from "@/components/ui/field"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import {
   Select,
   SelectContent,
   SelectGroup,
   SelectItem,
-  SelectLabel,
-  SelectSeparator,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
@@ -47,33 +46,16 @@ import { addItemSchema } from "@/lib/validations/pantry"
 import type {
   CategoryEnum,
   PantryItemInsert,
-  UnitEnum,
 } from "@/lib/types/pantrytypes"
-import { UNIT_OPTIONS } from "@/lib/types/pantrytypes"
 import { CATEGORY_OPTIONS } from "@/lib/types/shoppingtypes"
 import { addPantryItem } from "@/lib/api/pantry"
 import { useMediaQuery } from "@/lib/hooks/use-media-query"
 import { useRouter } from "next/navigation"
 
-const UNIT_NONE_VALUE = "__none__"
-
-function groupUnits() {
-  const map = new Map<string, { value: UnitEnum; label: string; group: string }[]>()
-  for (const unit of UNIT_OPTIONS) {
-    const list = map.get(unit.group) ?? []
-    list.push(unit)
-    map.set(unit.group, list)
-  }
-  return Array.from(map.entries())
-}
-
-const UNIT_GROUPS = groupUnits()
-
 function buildInsertPayload(values: {
   name: string
   category: CategoryEnum
   quantity: number
-  unit: UnitEnum | undefined
   expiry_date: string | undefined
   expiry_visible: boolean
 }): PantryItemInsert {
@@ -89,8 +71,6 @@ function buildInsertPayload(values: {
     quantity: values.quantity,
     expiry_visible: values.expiry_visible,
   }
-
-  if (values.unit) payload.unit = values.unit
   if (expiry) payload.expiry_date = expiry
 
   return payload
@@ -111,7 +91,6 @@ function AddPantryItemForm({
       name: "",
       category: "Produce" as CategoryEnum,
       quantity: 1,
-      unit: undefined as UnitEnum | undefined,
       expiry_date: "",
       expiry_visible: false,
     },
@@ -131,7 +110,6 @@ function AddPantryItemForm({
           name: trimmedName,
           category: value.category,
           quantity: value.quantity,
-          unit: value.unit as UnitEnum | undefined,
           expiry_date:
             typeof value.expiry_date === "string" ? value.expiry_date : undefined,
           expiry_visible: value.expiry_visible,
@@ -212,50 +190,6 @@ function AddPantryItemForm({
                   aria-invalid={isInvalid}
                   disabled={isSubmitting}
                 />
-                {isInvalid && <FieldError errors={field.state.meta.errors} />}
-              </Field>
-            )
-          }}
-        </form.Field>
-
-        <form.Field name="unit">
-          {(field) => {
-            const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
-            return (
-              <Field data-invalid={isInvalid}>
-                <FieldLabel htmlFor={field.name}>Unit</FieldLabel>
-                <Select
-                  value={field.state.value ?? UNIT_NONE_VALUE}
-                  onValueChange={(value) =>
-                    field.handleChange(
-                      value === UNIT_NONE_VALUE ? undefined : (value as UnitEnum)
-                    )
-                  }
-                  disabled={isSubmitting}
-                >
-                  <SelectTrigger id={field.name} className="w-full" aria-invalid={isInvalid}>
-                    <SelectValue placeholder="— none —" />
-                  </SelectTrigger>
-                  <SelectContent align="start" position="popper" side="bottom">
-                    <SelectGroup>
-                      <SelectItem value={UNIT_NONE_VALUE}>— none —</SelectItem>
-                    </SelectGroup>
-                    <SelectSeparator />
-                    {UNIT_GROUPS.map(([group, options], index) => (
-                      <React.Fragment key={group}>
-                        <SelectGroup>
-                          <SelectLabel>{group}</SelectLabel>
-                          {options.map((opt) => (
-                            <SelectItem key={opt.value} value={opt.value}>
-                              {opt.label}
-                            </SelectItem>
-                          ))}
-                        </SelectGroup>
-                        {index < UNIT_GROUPS.length - 1 ? <SelectSeparator /> : null}
-                      </React.Fragment>
-                    ))}
-                  </SelectContent>
-                </Select>
                 {isInvalid && <FieldError errors={field.state.meta.errors} />}
               </Field>
             )
@@ -358,7 +292,12 @@ export function AddPantryItem({
               Add an inventory item to your household pantry.
             </DialogDescription>
           </DialogHeader>
-          <AddPantryItemForm onSuccess={onSuccess} onItemAdded={onItemAdded} />
+          <ScrollArea className="max-h-[60vh] pr-2">
+            <AddPantryItemForm
+              onSuccess={onSuccess}
+              onItemAdded={onItemAdded}
+            />
+          </ScrollArea>
           <DialogFooter />
         </DialogContent>
       </Dialog>
@@ -375,9 +314,9 @@ export function AddPantryItem({
             Add an inventory item to your household pantry.
           </DrawerDescription>
         </DrawerHeader>
-        <div className="px-4 pb-2">
+        <ScrollArea className="flex-1 px-4 pb-2">
           <AddPantryItemForm onSuccess={onSuccess} onItemAdded={onItemAdded} />
-        </div>
+        </ScrollArea>
         <DrawerFooter />
       </DrawerContent>
     </Drawer>
