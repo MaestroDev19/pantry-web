@@ -33,7 +33,11 @@ import {
 } from "@/components/ui/chart"
 
 import { useMyPantryItems } from "@/lib/hooks/use-my-pantry-items"
-import { CATEGORY_OPTIONS, getCategoryDisplay } from "@/lib/types/shoppingtypes"
+import {
+  CATEGORY_OPTIONS,
+  getCategoryDisplay,
+  getCategoryLabel,
+} from "@/lib/types/shoppingtypes"
 import type { CategoryEnum } from "@/lib/types/pantrytypes"
 
 type CategoryChartKey =
@@ -62,20 +66,6 @@ const CATEGORY_ENUM_TO_KEY: Record<CategoryEnum, CategoryChartKey> = {
   Baking: "baking",
   Other: "other",
 }
-
-const CATEGORY_KEYS_IN_ORDER: CategoryChartKey[] = [
-  "dairy",
-  "produce",
-  "meat_seafood",
-  "grains_pasta",
-  "canned_goods",
-  "frozen",
-  "snacks",
-  "beverages",
-  "condiments_oils",
-  "baking",
-  "other",
-]
 
 const chartColors: string[] = [
   "var(--chart-1)",
@@ -125,7 +115,8 @@ export function ItemsByCategoryCard() {
     }
 
     for (const item of items) {
-      const key = CATEGORY_ENUM_TO_KEY[item.category]
+      const normalizedCategory = getCategoryLabel(item.category) as CategoryEnum
+      const key = CATEGORY_ENUM_TO_KEY[normalizedCategory]
       const qty =
         typeof item.quantity === "number" && Number.isFinite(item.quantity)
           ? item.quantity
@@ -137,10 +128,9 @@ export function ItemsByCategoryCard() {
   }, [items])
 
   const grandTotal = React.useMemo(() => {
-    return CATEGORY_KEYS_IN_ORDER.reduce(
-      (sum, key) => sum + totalsByKey[key],
-      0
-    )
+    return Object.values(totalsByKey).reduce((sum, value) => {
+      return sum + (Number.isFinite(value) ? value : 0)
+    }, 0)
   }, [totalsByKey])
 
   const hasAny = grandTotal > 0

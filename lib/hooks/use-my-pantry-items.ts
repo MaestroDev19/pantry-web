@@ -14,7 +14,16 @@ async function fetchMyPantryItems(): Promise<PantryItem[]> {
     throw new Error(`Failed to load my pantry items (${status})`)
   }
 
-  return Array.isArray(res.data) ? res.data : []
+  if (Array.isArray(res.data)) return res.data
+  if (
+    res.data &&
+    typeof res.data === "object" &&
+    "items" in res.data &&
+    Array.isArray((res.data as { items?: unknown }).items)
+  ) {
+    return (res.data as { items: PantryItem[] }).items
+  }
+  return []
 }
 
 export function useMyPantryItems() {
