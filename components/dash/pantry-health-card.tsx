@@ -1,5 +1,6 @@
 "use client";
 
+import * as React from "react";
 import { Bar, BarChart, XAxis, YAxis } from "recharts";
 import {
   Card,
@@ -23,6 +24,8 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty";
 import { IconTrendingUp, IconTrendingDown } from "@tabler/icons-react";
+import { getPantryExpiryKind } from "@/lib/utils/pantry-expiry";
+import { useMyPantryItems } from "@/lib/hooks/use-my-pantry-items";
 
 type PantryHealthRow = {
   name: string;
@@ -58,14 +61,45 @@ type PantryHealthCardProps = {
 };
 
 export function PantryHealthCard({ chartData, stats }: PantryHealthCardProps) {
-  const safeChartData = chartData ?? [];
+  const { items } = useMyPantryItems();
+
+  const computed = React.useMemo(() => {
+    let fresh = 0;
+    let warning = 0;
+    let expired = 0;
+
+    for (const item of items) {
+      const kind = getPantryExpiryKind(item.expiry_date);
+      if (kind === "expired") expired += 1;
+      else if (kind === "soon") warning += 1;
+      else fresh += 1;
+    }
+
+    return {
+      chartData: [
+        {
+          name: "My Pantry",
+          fresh,
+          warning,
+          expired,
+        },
+      ] as PantryHealthRow[],
+      stats: {
+        freshItems: fresh,
+        warningItems: warning,
+        expiredItems: expired,
+      } satisfies PantryHealthStats,
+    };
+  }, [items]);
+
+  const safeChartData = chartData ?? computed.chartData ?? [];
   const hasChartData =
     safeChartData.length > 0 &&
     safeChartData.some(
       (row) => row.fresh > 0 || row.warning > 0 || row.expired > 0,
     );
 
-  const safeStats = stats ?? null;
+  const safeStats = stats ?? computed.stats ?? null;
   const hasStats =
     safeStats !== null &&
     (safeStats.freshItems > 0 ||

@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useSWRConfig } from "swr"
 import { useForm } from "@tanstack/react-form"
 import { toast } from "sonner"
 import { Plus } from "lucide-react"
@@ -51,6 +52,7 @@ import { CATEGORY_OPTIONS } from "@/lib/types/shoppingtypes"
 import { addPantryItem } from "@/lib/api/pantry"
 import { useMediaQuery } from "@/lib/hooks/use-media-query"
 import { useRouter } from "next/navigation"
+import { MY_PANTRY_ITEMS_SWR_KEY } from "@/lib/hooks/use-my-pantry-items"
 
 function buildInsertPayload(values: {
   name: string
@@ -84,6 +86,7 @@ function AddPantryItemForm({
   onItemAdded?: () => void
 }) {
   const router = useRouter()
+  const { mutate } = useSWRConfig()
   const [isSubmitting, setIsSubmitting] = React.useState(false)
 
   const form = useForm({
@@ -128,6 +131,7 @@ function AddPantryItemForm({
         toast.success("Item added to pantry")
         onItemAdded?.()
         onSuccess()
+        void mutate(MY_PANTRY_ITEMS_SWR_KEY)
         router.refresh()
       } catch (error: unknown) {
         const err = error as Error
