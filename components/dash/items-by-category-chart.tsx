@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Bar, BarChart, XAxis, YAxis } from "recharts"
+import { Bar, BarChart, Cell, XAxis, YAxis } from "recharts"
 import { ShoppingBag } from "lucide-react"
 
 import {
@@ -11,8 +11,19 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyTitle,
+} from "@/components/ui/empty"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
 import {
   ChartContainer,
@@ -81,33 +92,21 @@ const chartColors: string[] = [
 ]
 
 const categoryChartConfig = {
-  dairy: { label: getCategoryDisplay("Dairy"), color: chartColors[0] },
-  produce: { label: getCategoryDisplay("Produce"), color: chartColors[1] },
-  meat_seafood: {
-    label: getCategoryDisplay("Meat & Seafood"),
-    color: chartColors[2],
+  value: {
+    label: "Items",
+    color: "var(--primary)",
   },
-  grains_pasta: {
-    label: getCategoryDisplay("Grains & Pasta"),
-    color: chartColors[3],
-  },
-  canned_goods: {
-    label: getCategoryDisplay("Canned Goods"),
-    color: chartColors[4],
-  },
-  frozen: { label: getCategoryDisplay("Frozen"), color: chartColors[5] },
-  snacks: { label: getCategoryDisplay("Snacks"), color: chartColors[6] },
-  beverages: { label: getCategoryDisplay("Beverages"), color: chartColors[7] },
-  condiments_oils: {
-    label: getCategoryDisplay("Condiments & Oils"),
-    color: chartColors[8],
-  },
-  baking: { label: getCategoryDisplay("Baking"), color: chartColors[9] },
-  other: { label: getCategoryDisplay("Other"), color: chartColors[10] },
 } satisfies ChartConfig
 
+type CategoryChartRow = {
+  key: CategoryChartKey
+  name: string
+  value: number
+  fill: string
+}
+
 export function ItemsByCategoryCard() {
-  const { items, isLoading } = useMyPantryItems()
+  const { items, isLoading, error } = useMyPantryItems()
   const [selected, setSelected] = React.useState<"all" | CategoryEnum>("all")
 
   const totalsByKey = React.useMemo(() => {
@@ -138,45 +137,49 @@ export function ItemsByCategoryCard() {
   }, [items])
 
   const grandTotal = React.useMemo(() => {
-    return CATEGORY_KEYS_IN_ORDER.reduce((sum, key) => sum + totalsByKey[key], 0)
+    return CATEGORY_KEYS_IN_ORDER.reduce(
+      (sum, key) => sum + totalsByKey[key],
+      0
+    )
   }, [totalsByKey])
 
   const hasAny = grandTotal > 0
 
-  const chartData = React.useMemo(() => {
-    if (!hasAny) return []
+  const allRows = React.useMemo((): CategoryChartRow[] => {
+    return CATEGORY_OPTIONS.map((category, i) => {
+      const key = CATEGORY_ENUM_TO_KEY[category.value]
+      return {
+        key,
+        name: getCategoryDisplay(category.value),
+        value: totalsByKey[key],
+        fill: chartColors[i] ?? "var(--primary)",
+      }
+    }).filter((row) => row.value > 0)
+  }, [totalsByKey])
 
-    if (selected === "all") {
-      return [
-        {
-          name: "My Pantry",
-          ...Object.fromEntries(
-            CATEGORY_KEYS_IN_ORDER.map((key) => [key, totalsByKey[key]]),
-          ),
-        },
-      ]
-    }
+  const visibleRows = React.useMemo((): CategoryChartRow[] => {
+    if (!hasAny) return []
+    if (selected === "all") return allRows
 
     const key = CATEGORY_ENUM_TO_KEY[selected]
-    return [
-      {
-        name: getCategoryDisplay(selected),
-        [key]: totalsByKey[key],
-      },
-    ]
-  }, [hasAny, selected, totalsByKey])
-
-  const selectedKey = selected === "all" ? null : CATEGORY_ENUM_TO_KEY[selected]
+    const row = allRows.find((r) => r.key === key)
+    return row ? [row] : []
+  }, [allRows, hasAny, selected])
 
   return (
     <Card className="w-full">
       <CardHeader className="pb-4">
-        <CardTitle className="text-lg font-semibold">Items by Category</CardTitle>
+        <CardTitle className="text-lg font-semibold">
+          Items by Category
+        </CardTitle>
         <CardDescription>Breakdown of your pantry by category</CardDescription>
       </CardHeader>
 
       <CardContent className="space-y-6">
-        <Select value={selected} onValueChange={(v) => setSelected(v as CategoryEnum | "all")}>
+        <Select
+          value={selected}
+          onValueChange={(v) => setSelected(v as CategoryEnum | "all")}
+        >
           <SelectTrigger className="w-full">
             <SelectValue placeholder="Select category" />
           </SelectTrigger>
@@ -195,6 +198,16 @@ export function ItemsByCategoryCard() {
             <Skeleton className="h-4 w-40" />
             <Skeleton className="h-10 w-full" />
           </div>
+        ) : error ? (
+          <Empty className="max-w-none border-none p-0">
+            <EmptyHeader>
+              <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+                <ShoppingBag className="h-6 w-6 text-muted-foreground" />
+              </div>
+              <EmptyTitle>Unable to load pantry</EmptyTitle>
+              <EmptyDescription>{error.message}</EmptyDescription>
+            </EmptyHeader>
+          </Empty>
         ) : !hasAny ? (
           <Empty className="max-w-none border-none p-0">
             <EmptyHeader>
@@ -208,38 +221,25 @@ export function ItemsByCategoryCard() {
             </EmptyHeader>
           </Empty>
         ) : (
-          <ChartContainer config={categoryChartConfig} className="h-32 w-full">
+          <ChartContainer config={categoryChartConfig} className="h-56 w-full">
             <BarChart
               accessibilityLayer
-              data={chartData}
+              data={visibleRows}
               layout="vertical"
               margin={{ top: 0, right: 0, bottom: 0, left: 0 }}
             >
               <XAxis type="number" hide domain={[0, "dataMax"]} />
-              <YAxis dataKey="name" type="category" hide />
+              <YAxis dataKey="name" type="category" width={140} />
               <ChartTooltip
                 content={<ChartTooltipContent indicator="line" />}
                 cursor={false}
               />
 
-              {selectedKey ? (
-                <Bar
-                  dataKey={selectedKey}
-                  stackId="a"
-                  fill={`var(--color-${selectedKey})`}
-                  radius={[4, 0, 0, 4]}
-                />
-              ) : (
-                CATEGORY_KEYS_IN_ORDER.map((key) => (
-                  <Bar
-                    key={key}
-                    dataKey={key}
-                    stackId="a"
-                    fill={`var(--color-${key})`}
-                    radius={[4, 0, 0, 4]}
-                  />
-                ))
-              )}
+              <Bar dataKey="value" radius={[4, 4, 4, 4]}>
+                {visibleRows.map((row) => (
+                  <Cell key={row.key} fill={row.fill} />
+                ))}
+              </Bar>
             </BarChart>
           </ChartContainer>
         )}

@@ -18,10 +18,14 @@ async function fetchMyPantryItems(): Promise<PantryItem[]> {
 }
 
 export function useMyPantryItems() {
-  const swr = useSWR<PantryItem[]>(MY_PANTRY_ITEMS_SWR_KEY, fetchMyPantryItems, {
-    revalidateOnFocus: true,
-    revalidateOnReconnect: true,
-  })
+  const swr = useSWR<PantryItem[]>(
+    MY_PANTRY_ITEMS_SWR_KEY,
+    fetchMyPantryItems,
+    {
+      revalidateOnFocus: true,
+      revalidateOnReconnect: true,
+    }
+  )
 
   return {
     items: swr.data ?? [],
@@ -30,4 +34,3 @@ export function useMyPantryItems() {
     isValidating: swr.isValidating,
   }
 }
-

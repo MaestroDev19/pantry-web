@@ -1,7 +1,7 @@
-"use client";
+"use client"
 
-import * as React from "react";
-import { Bar, BarChart, XAxis, YAxis } from "recharts";
+import * as React from "react"
+import { Bar, BarChart, XAxis, YAxis } from "recharts"
 import {
   Card,
   CardContent,
@@ -9,36 +9,36 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+} from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
   type ChartConfig,
-} from "@/components/ui/chart";
+} from "@/components/ui/chart"
 import {
   Empty,
   EmptyDescription,
   EmptyHeader,
   EmptyTitle,
-} from "@/components/ui/empty";
-import { IconTrendingUp, IconTrendingDown } from "@tabler/icons-react";
-import { getPantryExpiryKind } from "@/lib/utils/pantry-expiry";
-import { useMyPantryItems } from "@/lib/hooks/use-my-pantry-items";
+} from "@/components/ui/empty"
+import { IconTrendingUp, IconTrendingDown } from "@tabler/icons-react"
+import { getPantryExpiryKind } from "@/lib/utils/pantry-expiry"
+import { useMyPantryItems } from "@/lib/hooks/use-my-pantry-items"
 
 type PantryHealthRow = {
-  name: string;
-  fresh: number;
-  warning: number;
-  expired: number;
-};
+  name: string
+  fresh: number
+  warning: number
+  expired: number
+}
 
 type PantryHealthStats = {
-  freshItems: number;
-  warningItems: number;
-  expiredItems: number;
-};
+  freshItems: number
+  warningItems: number
+  expiredItems: number
+}
 
 const chartConfig = {
   fresh: {
@@ -53,35 +53,43 @@ const chartConfig = {
     label: "Expired",
     color: "var(--destructive)",
   },
-} satisfies ChartConfig;
+} satisfies ChartConfig
 
 type PantryHealthCardProps = {
-  chartData?: PantryHealthRow[];
-  stats?: PantryHealthStats;
-};
+  chartData?: PantryHealthRow[]
+  stats?: PantryHealthStats
+}
 
 export function PantryHealthCard({ chartData, stats }: PantryHealthCardProps) {
-  const { items } = useMyPantryItems();
+  const { items } = useMyPantryItems()
 
   const computed = React.useMemo(() => {
-    let fresh = 0;
-    let warning = 0;
-    let expired = 0;
+    let fresh = 0
+    let warning = 0
+    let expired = 0
 
     for (const item of items) {
-      const kind = getPantryExpiryKind(item.expiry_date);
-      if (kind === "expired") expired += 1;
-      else if (kind === "soon") warning += 1;
-      else fresh += 1;
+      const kind = getPantryExpiryKind(item.expiry_date)
+      if (kind === "expired") expired += 1
+      else if (kind === "soon") warning += 1
+      else fresh += 1
     }
+
+    const total = fresh + warning + expired
+    const freshPct = total > 0 ? Math.round((fresh / total) * 100) : 0
+    const warningPct = total > 0 ? Math.round((warning / total) * 100) : 0
+    const expiredPct = total > 0 ? Math.round((expired / total) * 100) : 0
+
+    const drift = total > 0 ? 100 - (freshPct + warningPct + expiredPct) : 0
+    const adjustedFreshPct = freshPct + drift
 
     return {
       chartData: [
         {
           name: "My Pantry",
-          fresh,
-          warning,
-          expired,
+          fresh: adjustedFreshPct,
+          warning: warningPct,
+          expired: expiredPct,
         },
       ] as PantryHealthRow[],
       stats: {
@@ -89,25 +97,25 @@ export function PantryHealthCard({ chartData, stats }: PantryHealthCardProps) {
         warningItems: warning,
         expiredItems: expired,
       } satisfies PantryHealthStats,
-    };
-  }, [items]);
+    }
+  }, [items])
 
-  const safeChartData = chartData ?? computed.chartData ?? [];
+  const safeChartData = chartData ?? computed.chartData ?? []
   const hasChartData =
     safeChartData.length > 0 &&
     safeChartData.some(
-      (row) => row.fresh > 0 || row.warning > 0 || row.expired > 0,
-    );
+      (row) => row.fresh > 0 || row.warning > 0 || row.expired > 0
+    )
 
-  const safeStats = stats ?? computed.stats ?? null;
+  const safeStats = stats ?? computed.stats ?? null
   const hasStats =
     safeStats !== null &&
     (safeStats.freshItems > 0 ||
       safeStats.warningItems > 0 ||
-      safeStats.expiredItems > 0);
+      safeStats.expiredItems > 0)
 
   return (
-    <Card className="border-border border-dashed">
+    <Card className="border-dashed border-border">
       <CardHeader>
         <CardTitle>Pantry Health</CardTitle>
         <CardDescription>
@@ -116,7 +124,7 @@ export function PantryHealthCard({ chartData, stats }: PantryHealthCardProps) {
       </CardHeader>
       {hasChartData ? (
         <>
-          <CardContent className="flex w-full flex-col gap-6 pb-0 pt-4">
+          <CardContent className="flex w-full flex-col gap-6 pt-4 pb-0">
             <ChartContainer config={chartConfig} className="mb-2 h-10 w-full">
               <BarChart
                 accessibilityLayer
@@ -154,19 +162,22 @@ export function PantryHealthCard({ chartData, stats }: PantryHealthCardProps) {
 
           {hasStats && safeStats !== null && (
             <CardFooter className="w-full">
-              <div className="grid w-full grid-cols-1 gap-2 *:data-[slot=card]:bg-linear-to-t *:data-[slot=card]:from-background/50 *:data-[slot=card]:shadow-xs *:data-[slot=card]:to-card sm:grid-cols-3 dark:*:data-[slot=card]:bg-card">
+              <div className="grid w-full grid-cols-1 gap-2 *:data-[slot=card]:bg-linear-to-t *:data-[slot=card]:from-background/50 *:data-[slot=card]:to-card *:data-[slot=card]:shadow-xs sm:grid-cols-3 dark:*:data-[slot=card]:bg-card">
                 <Card data-slot="card" className="border-primary/20">
                   <CardHeader>
                     <CardDescription>Fresh Items</CardDescription>
                     <CardTitle className="text-2xl font-semibold tabular-nums sm:text-3xl">
                       {safeStats.freshItems}
                     </CardTitle>
-                    <div className="absolute right-4 top-4">
+                    <div className="absolute top-4 right-4">
                       <Badge
                         variant="outline"
                         className="border-primary/20 bg-primary/10 text-primary"
                       >
-                        <IconTrendingUp aria-hidden="true" className="mr-1 size-3.5" />
+                        <IconTrendingUp
+                          aria-hidden="true"
+                          className="mr-1 size-3.5"
+                        />
                         Fresh
                       </Badge>
                     </div>
@@ -179,12 +190,15 @@ export function PantryHealthCard({ chartData, stats }: PantryHealthCardProps) {
                     <CardTitle className="text-2xl font-semibold tabular-nums sm:text-3xl">
                       {safeStats.warningItems}
                     </CardTitle>
-                    <div className="absolute right-4 top-4">
+                    <div className="absolute top-4 right-4">
                       <Badge
                         variant="outline"
                         className="border-warning/20 bg-warning/10 text-warning"
                       >
-                        <IconTrendingDown aria-hidden="true" className="mr-1 size-3.5" />
+                        <IconTrendingDown
+                          aria-hidden="true"
+                          className="mr-1 size-3.5"
+                        />
                         Warning
                       </Badge>
                     </div>
@@ -197,12 +211,15 @@ export function PantryHealthCard({ chartData, stats }: PantryHealthCardProps) {
                     <CardTitle className="text-2xl font-semibold tabular-nums sm:text-3xl">
                       {safeStats.expiredItems}
                     </CardTitle>
-                    <div className="absolute right-4 top-4">
+                    <div className="absolute top-4 right-4">
                       <Badge
                         variant="outline"
                         className="border-destructive/20 bg-destructive/10 text-destructive"
                       >
-                        <IconTrendingDown aria-hidden="true" className="mr-1 size-3.5" />
+                        <IconTrendingDown
+                          aria-hidden="true"
+                          className="mr-1 size-3.5"
+                        />
                         Expired
                       </Badge>
                     </div>
@@ -225,5 +242,5 @@ export function PantryHealthCard({ chartData, stats }: PantryHealthCardProps) {
         </CardContent>
       )}
     </Card>
-  );
+  )
 }
