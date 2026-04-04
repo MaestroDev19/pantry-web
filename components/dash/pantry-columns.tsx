@@ -189,9 +189,9 @@ const ownerNameColumn: ColumnDef<PantryItem> = {
   accessorFn: (row) => (row.owner_name ?? "").trim(),
   header: "Owner",
   cell: ({ row }) => (
-    <span className="text-muted-foreground max-w-[140px] truncate">
+    <div className="max-w-[min(100%,16rem)] whitespace-normal wrap-break-word text-muted-foreground">
       {row.original.owner_name?.trim() ? row.original.owner_name.trim() : "—"}
-    </span>
+    </div>
   ),
 }
 

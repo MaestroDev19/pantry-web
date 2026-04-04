@@ -171,7 +171,8 @@ export function HouseholdSettingsPage({
           disabled={renameSaving}
         />
         <FieldDescription>
-          This label is saved to your household and appears across your workspace.
+          This label is saved to your household and appears across your
+          workspace.
         </FieldDescription>
       </Field>
     </FieldGroup>
@@ -205,7 +206,7 @@ export function HouseholdSettingsPage({
     }
     if (normalized.length !== EXPECTED_INVITE_CODE_LENGTH) {
       toast.error(
-        `Invite codes are ${EXPECTED_INVITE_CODE_LENGTH} characters. Check the code and try again.`,
+        `Invite codes are ${EXPECTED_INVITE_CODE_LENGTH} characters. Check the code and try again.`
       )
       return
     }
@@ -241,13 +242,12 @@ export function HouseholdSettingsPage({
 
   const handleShareInviteByEmail = React.useCallback(() => {
     if (!initialInviteCode) return
-    const origin =
-      typeof window !== "undefined" ? window.location.origin : ""
+    const origin = typeof window !== "undefined" ? window.location.origin : ""
     const path = "/dashboard/settings/household"
     const link = origin ? `${origin}${path}` : path
     const subject = encodeURIComponent("Join my Pantry household")
     const body = encodeURIComponent(
-      `I'm sharing our pantry household with you.\n\nInvite code: ${initialInviteCode}\n\nOpen ${link} in Pantry and use Settings → Household to join with this code.`,
+      `I'm sharing our pantry household with you.\n\nInvite code: ${initialInviteCode}\n\nOpen ${link} in Pantry and use Settings → Household to join with this code.`
     )
     window.location.href = `mailto:?subject=${subject}&body=${body}`
   }, [initialInviteCode])
@@ -418,7 +418,7 @@ export function HouseholdSettingsPage({
         </CardHeader>
         <CardContent className="pt-4">
           <ItemGroup className="gap-2">
-            <Item variant="outline" size="sm" className="flex flex-wrap">
+            <Item variant="outline" size="sm" className="flex flex-wrap items-start">
               <ItemMedia variant="image">
                 <Avatar className="size-10 rounded-md">
                   <AvatarImage src={user.avatar_url ?? undefined} alt="" />
@@ -427,9 +427,13 @@ export function HouseholdSettingsPage({
                   </AvatarFallback>
                 </Avatar>
               </ItemMedia>
-              <ItemContent>
-                <ItemTitle className="no-underline">{user.full_name}</ItemTitle>
-                <ItemDescription>{user.email}</ItemDescription>
+              <ItemContent className="min-w-0">
+                <ItemTitle className="no-underline line-clamp-none w-full text-pretty wrap-break-word">
+                  {user.full_name}
+                </ItemTitle>
+                <ItemDescription className="line-clamp-none wrap-break-word">
+                  {user.email}
+                </ItemDescription>
               </ItemContent>
               <Badge variant="secondary" className="ms-auto shrink-0">
                 You
@@ -465,7 +469,9 @@ export function HouseholdSettingsPage({
           <CardContent className="pt-4">
             <FieldGroup>
               <Field>
-                <FieldLabel htmlFor="household-share-code">Invite code</FieldLabel>
+                <FieldLabel htmlFor="household-share-code">
+                  Invite code
+                </FieldLabel>
                 <InputGroup>
                   <InputGroupInput
                     id="household-share-code"
@@ -488,7 +494,8 @@ export function HouseholdSettingsPage({
                   </InputGroupAddon>
                 </InputGroup>
                 <FieldDescription>
-                  Copy the code or open your email app with a pre-filled message.
+                  Copy the code or open your email app with a pre-filled
+                  message.
                 </FieldDescription>
               </Field>
             </FieldGroup>
@@ -523,8 +530,8 @@ export function HouseholdSettingsPage({
               <div className="flex flex-col gap-1">
                 <CardTitle>Join a household</CardTitle>
                 <CardDescription>
-                  Paste an invite code from a household admin to link your account
-                  to their pantry.
+                  Paste an invite code from a household admin to link your
+                  account to their pantry.
                 </CardDescription>
               </div>
             </div>
@@ -532,7 +539,9 @@ export function HouseholdSettingsPage({
           <CardContent className="pt-4">
             <FieldGroup>
               <Field>
-                <FieldLabel htmlFor="household-join-code">Invite code</FieldLabel>
+                <FieldLabel htmlFor="household-join-code">
+                  Invite code
+                </FieldLabel>
                 <Input
                   id="household-join-code"
                   name="household-join-code"
@@ -545,9 +554,10 @@ export function HouseholdSettingsPage({
                   className="font-mono uppercase"
                 />
                 <FieldDescription>
-                  Codes are {EXPECTED_INVITE_CODE_LENGTH} letters or numbers (spaces are
-                  ignored). Joining moves your personal pantry items into the shared
-                  household when the server applies a move policy.
+                  Codes are {EXPECTED_INVITE_CODE_LENGTH} letters or numbers
+                  (spaces are ignored). Joining moves your personal pantry items
+                  into the shared household when the server applies a move
+                  policy.
                 </FieldDescription>
               </Field>
             </FieldGroup>
@@ -613,8 +623,8 @@ export function HouseholdSettingsPage({
           <CardHeader>
             <CardTitle className="text-destructive">Leave household</CardTitle>
             <CardDescription>
-              Leave this shared household and continue in a new personal one. Pantry
-              items you added here are moved, not deleted.
+              Leave this shared household and continue in a new personal one.
+              Pantry items you added here are moved, not deleted.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -628,8 +638,8 @@ export function HouseholdSettingsPage({
             <CardDescription>
               You can only leave a <span className="font-medium">shared</span>{" "}
               household. Your current space is a personal household; use{" "}
-              <span className="font-medium">Join a household</span> above if you want
-              to link to someone else&apos;s pantry.
+              <span className="font-medium">Join a household</span> above if you
+              want to link to someone else&apos;s pantry.
             </CardDescription>
           </CardHeader>
         </Card>

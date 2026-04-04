@@ -1,23 +1,23 @@
-import { redirect } from "next/navigation";
+import { redirect } from "next/navigation"
 
-import { HouseholdSettingsPage } from "@/components/dash/household-settings-page";
-import { getHouseholdDetailsByUserId } from "@/lib/actions/household";
-import { getDashboardData } from "@/lib/utils/dashboard";
-import { createClient } from "@/lib/supabase/server";
+import { HouseholdSettingsPage } from "@/components/dash/household-settings-page"
+import { getHouseholdDetailsByUserId } from "@/lib/actions/household"
+import { getDashboardData } from "@/lib/utils/dashboard"
+import { createClient } from "@/lib/supabase/server"
 
 export default async function HouseholdSettingsRoute() {
-  const data = await getDashboardData();
+  const data = await getDashboardData()
   if (!data) {
-    redirect("/");
+    redirect("/")
   }
 
-  const supabase = await createClient();
+  const supabase = await createClient()
   const { data: household } = await getHouseholdDetailsByUserId(
     supabase,
-    data.userProfile.user.id,
-  );
+    data.userProfile.user.id
+  )
 
-  const isPersonal = household?.is_personal !== false;
+  const isPersonal = household?.is_personal !== false
 
   return (
     <HouseholdSettingsPage
@@ -27,5 +27,5 @@ export default async function HouseholdSettingsRoute() {
       householdIsPersonal={isPersonal}
       initialInviteCode={household?.invite_code ?? null}
     />
-  );
+  )
 }
