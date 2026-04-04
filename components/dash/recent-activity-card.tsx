@@ -30,6 +30,14 @@ import { useMyPantryItems } from "@/lib/hooks/use-my-pantry-items"
 import { getCategoryDisplay } from "@/lib/types/shoppingtypes"
 import { getPantryExpiryKind } from "@/lib/utils/pantry-expiry"
 import {
+  RECENT_ACTIVITY_LOOKBACK_DAYS,
+  RECENT_ACTIVITY_MAX_ITEMS,
+  formatRelativeActivityTime,
+  pantryItemWasUpdated,
+  pickActivityIsoString,
+  selectRecentPantryItems,
+} from "@/lib/utils/recent-activity"
+import {
   Item,
   ItemActions,
   ItemContent,
@@ -43,24 +51,16 @@ import {
 export function RecentActivityCard() {
   const { items, isLoading } = useMyPantryItems()
 
-  const recentItems = React.useMemo(() => {
-    const withTime = items
-      .map((item) => {
-        const timestamp = item.updated_at ?? item.created_at
-        const t = timestamp ? Date.parse(timestamp) : NaN
-        return { item, t: Number.isFinite(t) ? t : -1 }
-      })
-      .sort((a, b) => b.t - a.t)
-      .map(({ item }) => item)
+  const recentItems = React.useMemo(
+    () =>
+      selectRecentPantryItems(items, {
+        lookbackDays: RECENT_ACTIVITY_LOOKBACK_DAYS,
+        maxItems: RECENT_ACTIVITY_MAX_ITEMS,
+      }),
+    [items]
+  )
 
-    return withTime.slice(0, 6)
-  }, [items])
-
-  const formatDate = React.useCallback((value: string | null | undefined) => {
-    if (!value) return "—"
-    const d = new Date(value)
-    return Number.isNaN(d.getTime()) ? "—" : d.toLocaleDateString()
-  }, [])
+  const hasAnyItems = items.length > 0
 
   const ExpiryBadge = React.useCallback(({ date }: { date: string | null }) => {
     const kind = getPantryExpiryKind(date)
@@ -78,18 +78,27 @@ export function RecentActivityCard() {
     return <Badge variant="secondary">Fresh</Badge>
   }, [])
 
-  const ActivityIcon = React.useCallback(({ date }: { date: string | null }) => {
-    const kind = getPantryExpiryKind(date)
-    if (kind === "expired") return <ShieldAlertIcon aria-hidden="true" />
-    if (kind === "soon") return <AlertTriangleIcon aria-hidden="true" />
-    return <CheckCircleIcon aria-hidden="true" />
-  }, [])
+  const ActivityIcon = React.useCallback(
+    ({ date }: { date: string | null }) => {
+      const kind = getPantryExpiryKind(date)
+      const iconClass = "size-4 text-muted-foreground"
+      if (kind === "expired")
+        return <ShieldAlertIcon aria-hidden="true" className={iconClass} />
+      if (kind === "soon")
+        return <AlertTriangleIcon aria-hidden="true" className={iconClass} />
+      return <CheckCircleIcon aria-hidden="true" className={iconClass} />
+    },
+    []
+  )
 
   return (
     <Card className="flex flex-col border-dashed border-border">
       <CardHeader>
         <CardTitle>Recent Activity</CardTitle>
-        <CardDescription>Latest changes to your pantry</CardDescription>
+        <CardDescription>
+          Items with changes in the last {RECENT_ACTIVITY_LOOKBACK_DAYS} days (up to{" "}
+          {RECENT_ACTIVITY_MAX_ITEMS} shown)
+        </CardDescription>
       </CardHeader>
 
       <CardContent className="flex flex-1">
@@ -108,22 +117,29 @@ export function RecentActivityCard() {
               <EmptyMedia variant="icon">
                 <ClockIcon />
               </EmptyMedia>
-              <EmptyTitle>No activity yet</EmptyTitle>
+              <EmptyTitle>
+                {hasAnyItems ? "No recent activity" : "No activity yet"}
+              </EmptyTitle>
               <EmptyDescription>
-                Changes to your pantry will appear here.
+                {hasAnyItems
+                  ? `Nothing has changed in the last ${RECENT_ACTIVITY_LOOKBACK_DAYS} days. Older items are hidden from this list.`
+                  : "Add items to your pantry to see updates here."}
               </EmptyDescription>
             </EmptyHeader>
           </Empty>
         ) : (
-          <ScrollArea className="h-48 pr-2">
-            <ItemGroup className="max-w-full gap-0">
+          <ScrollArea className="h-48 w-full pr-2">
+            <ItemGroup className="w-full max-w-full gap-0">
               {recentItems.map((item, index) => (
                 <React.Fragment key={item.id}>
-                  <Item variant="outline" size="sm" className="border-none px-0">
+                  <Item
+                    variant="outline"
+                    size="sm"
+                    className="border-none px-0"
+                  >
                     <ItemMedia variant="icon">
                       <ActivityIcon date={item.expiry_date} />
                     </ItemMedia>
-
                     <ItemContent className="min-w-0">
                       <ItemTitle className="truncate">{item.name}</ItemTitle>
                       <ItemDescription className="truncate">
@@ -134,7 +150,14 @@ export function RecentActivityCard() {
                     <ItemActions className="flex flex-col items-end gap-1">
                       <ExpiryBadge date={item.expiry_date} />
                       <span className="text-xs text-muted-foreground tabular-nums">
-                        {formatDate(item.updated_at ?? item.created_at)}
+                        {(() => {
+                          const ts = pickActivityIsoString(item)
+                          const label = pantryItemWasUpdated(item)
+                            ? "Updated"
+                            : "Added"
+                          const rel = formatRelativeActivityTime(ts)
+                          return rel === "—" ? label : `${label} · ${rel}`
+                        })()}
                       </span>
                     </ItemActions>
                   </Item>

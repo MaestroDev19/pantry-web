@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Bar, BarChart, Cell, XAxis, YAxis } from "recharts"
+import { Bar, BarChart, XAxis, YAxis } from "recharts"
 import { ShoppingBag } from "lucide-react"
 
 import {
@@ -37,6 +37,7 @@ import {
   CATEGORY_OPTIONS,
   getCategoryDisplay,
   getCategoryLabel,
+  normalizeCategory,
 } from "@/lib/types/shoppingtypes"
 import type { CategoryEnum } from "@/lib/types/pantrytypes"
 
@@ -81,17 +82,34 @@ const chartColors: string[] = [
   "var(--destructive)",
 ]
 
-const categoryChartConfig = {
-  value: {
-    label: "Items",
-    color: "var(--primary)",
-  },
-} satisfies ChartConfig
+function buildChartConfig(): ChartConfig {
+  const config: ChartConfig = {
+    count: {
+      label: "Items",
+    },
+  }
+  for (let i = 0; i < CATEGORY_OPTIONS.length; i++) {
+    const opt = CATEGORY_OPTIONS[i]
+    const key = CATEGORY_ENUM_TO_KEY[opt.value]
+    config[key] = {
+      label: getCategoryDisplay(opt.value),
+      color: chartColors[i] ?? "var(--primary)",
+    }
+  }
+  return config
+}
+
+const chartConfig = buildChartConfig()
 
 type CategoryChartRow = {
   key: CategoryChartKey
   name: string
   value: number
+}
+
+type ChartDatum = {
+  category: CategoryChartKey
+  count: number
   fill: string
 }
 
@@ -115,8 +133,8 @@ export function ItemsByCategoryCard() {
     }
 
     for (const item of items) {
-      const normalizedCategory = getCategoryLabel(item.category) as CategoryEnum
-      const key = CATEGORY_ENUM_TO_KEY[normalizedCategory]
+      const normalizedCategory = normalizeCategory(item.category)
+      const key = CATEGORY_ENUM_TO_KEY[normalizedCategory] ?? "other"
       const qty =
         typeof item.quantity === "number" && Number.isFinite(item.quantity)
           ? item.quantity
@@ -136,13 +154,12 @@ export function ItemsByCategoryCard() {
   const hasAny = grandTotal > 0
 
   const allRows = React.useMemo((): CategoryChartRow[] => {
-    return CATEGORY_OPTIONS.map((category, i) => {
+    return CATEGORY_OPTIONS.map((category) => {
       const key = CATEGORY_ENUM_TO_KEY[category.value]
       return {
         key,
         name: getCategoryDisplay(category.value),
         value: totalsByKey[key],
-        fill: chartColors[i] ?? "var(--primary)",
       }
     }).filter((row) => row.value > 0)
   }, [totalsByKey])
@@ -156,19 +173,28 @@ export function ItemsByCategoryCard() {
     return row ? [row] : []
   }, [allRows, hasAny, selected])
 
+  const chartData = React.useMemo((): ChartDatum[] => {
+    return visibleRows.map((row) => ({
+      category: row.key,
+      count: row.value,
+      fill: `var(--color-${row.key})`,
+    }))
+  }, [visibleRows])
+
   return (
     <Card className="w-full">
-      <CardHeader className="pb-4">
-        <CardTitle className="text-lg font-semibold">
-          Items by Category
-        </CardTitle>
+      <CardHeader>
+        <CardTitle>Items by Category</CardTitle>
         <CardDescription>Breakdown of your pantry by category</CardDescription>
       </CardHeader>
 
       <CardContent className="space-y-6">
         <Select
           value={selected}
-          onValueChange={(v) => setSelected(v as CategoryEnum | "all")}
+          onValueChange={(v) => {
+            if (v === "all") setSelected("all")
+            else setSelected(getCategoryLabel(v) as CategoryEnum)
+          }}
         >
           <SelectTrigger className="w-full">
             <SelectValue placeholder="Select category" />
@@ -211,25 +237,31 @@ export function ItemsByCategoryCard() {
             </EmptyHeader>
           </Empty>
         ) : (
-          <ChartContainer config={categoryChartConfig} className="h-56 w-full">
+          <ChartContainer config={chartConfig} className="h-56 w-full">
             <BarChart
               accessibilityLayer
-              data={visibleRows}
+              data={chartData}
               layout="vertical"
-              margin={{ top: 0, right: 0, bottom: 0, left: 0 }}
+              margin={{
+                left: 0,
+              }}
             >
-              <XAxis type="number" hide domain={[0, "dataMax"]} />
-              <YAxis dataKey="name" type="category" width={140} />
-              <ChartTooltip
-                content={<ChartTooltipContent indicator="line" />}
-                cursor={false}
+              <YAxis
+                dataKey="category"
+                type="category"
+                tickLine={false}
+                tickMargin={10}
+                axisLine={false}
+                tickFormatter={(value) =>
+                  chartConfig[value as CategoryChartKey]?.label as string
+                }
               />
-
-              <Bar dataKey="value" radius={[4, 4, 4, 4]}>
-                {visibleRows.map((row) => (
-                  <Cell key={row.key} fill={row.fill} />
-                ))}
-              </Bar>
+              <XAxis dataKey="count" type="number" hide />
+              <ChartTooltip
+                cursor={false}
+                content={<ChartTooltipContent hideLabel />}
+              />
+              <Bar dataKey="count" radius={5} />
             </BarChart>
           </ChartContainer>
         )}

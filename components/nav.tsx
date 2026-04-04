@@ -4,13 +4,13 @@ import {
   DrawerHeader,
   DrawerTitle,
   DrawerTrigger,
-} from "@/components/ui/drawer";
-import { BellIcon, MenuIcon, Utensils } from "lucide-react";
-import Link from "next/link";
+} from "@/components/ui/drawer"
+import { BellIcon, MenuIcon, Utensils } from "lucide-react"
+import Link from "next/link"
 
-import { NavBarItem } from "./nav-items";
-import { ThemeToggle } from "./theme-toggler";
-import { Separator } from "./ui/separator";
+import { NavBarItem } from "./nav-items"
+import { ThemeToggle } from "./theme-toggler"
+import { Separator } from "./ui/separator"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,25 +19,25 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "./ui/dropdown-menu";  
-import { Button } from "./ui/button";
-import { Avatar, AvatarImage, AvatarFallback } from "./ui/avatar";
-import { DashboardData } from "@/lib/utils/dashboard";
-import { signOut } from "@/lib/actions/authenticaton";
+} from "./ui/dropdown-menu"
+import { Button } from "./ui/button"
+import { Avatar, AvatarImage, AvatarFallback } from "./ui/avatar"
+import { DashboardData } from "@/lib/utils/dashboard"
+import { signOut } from "@/lib/actions/authenticaton"
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard" },
   { href: "/dashboard/pantry", label: "Pantry" },
   { href: "/dashboard/recipes", label: "Recipes" },
   { href: "/dashboard/shopping-list", label: "My shopping list" },
-];
+]
 
 export function NavBar({ data }: { data: DashboardData }) {
-  const profile = data.userProfile.user;
+  const profile = data.userProfile.user
 
   return (
     <>
-      <div className="sm:hidden h-8 flex items-center justify-between">
+      <div className="flex h-8 items-center justify-between sm:hidden">
         <MobileNavbar />
 
         <div className="flex items-center gap-2">
@@ -79,13 +79,21 @@ export function NavBar({ data }: { data: DashboardData }) {
               <DropdownMenuGroup>
                 <DropdownMenuItem>Profile</DropdownMenuItem>
                 <DropdownMenuItem>Billing</DropdownMenuItem>
-                <DropdownMenuItem>Settings</DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/dashboard/settings/household">Household</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/dashboard/settings">Settings</Link>
+                </DropdownMenuItem>
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
               <DropdownMenuGroup>
                 <form action={signOut} className="w-full">
                   <DropdownMenuItem variant="destructive" asChild>
-                    <button type="submit" className="w-full text-left cursor-pointer">
+                    <button
+                      type="submit"
+                      className="w-full cursor-pointer text-left"
+                    >
                       Log out
                     </button>
                   </DropdownMenuItem>
@@ -99,7 +107,7 @@ export function NavBar({ data }: { data: DashboardData }) {
         <DesktopNavbar data={data} />
       </div>
     </>
-  );
+  )
 }
 
 function MobileNavbar() {
@@ -109,13 +117,13 @@ function MobileNavbar() {
         <MenuIcon className="size-5" />
       </DrawerTrigger>
       <DrawerContent className="h-[60%]">
-        <div className="py-8 px-8 space-y-4">
+        <div className="space-y-4 px-8 py-8">
           <div className="flex justify-between">
             <Link
               href="/"
-              className="inline-flex items-center gap-1 font-medium font-mono tracking-tight text-base"
+              className="inline-flex items-center gap-1 font-mono text-base font-medium tracking-tight"
             >
-              <div className="bg-primary text-primary-foreground flex size-6 items-center justify-center rounded-md">
+              <div className="flex size-6 items-center justify-center rounded-md bg-primary text-primary-foreground">
                 <Utensils className="size-4" />
               </div>
               <span>Pantry</span>
@@ -140,40 +148,40 @@ function MobileNavbar() {
         </DrawerHeader>
       </DrawerContent>
     </Drawer>
-  );
+  )
 }
 
 function DesktopNavbar({ data }: { data: DashboardData }) {
-  const profile = data.userProfile.user;
+  const profile = data.userProfile.user
 
   return (
-    <div className="grid grid-cols-3 items-center gap-4 h-8">
+    <div className="grid h-8 grid-cols-3 items-center gap-4">
       <div className="flex items-center gap-16">
         <Link
           href="/dashboard"
-          className="inline-flex items-center gap-1 font-medium font-mono tracking-tight text-sm"
+          className="inline-flex items-center gap-1 font-mono text-sm font-medium tracking-tight"
         >
-          <div className="bg-primary text-primary-foreground flex size-6 items-center justify-center rounded-md">
+          <div className="flex size-6 items-center justify-center rounded-md bg-primary text-primary-foreground">
             <Utensils className="size-4" />
           </div>
           <span>Pantry</span>
         </Link>
       </div>
-      <ul className="flex justify-center text-sm items-center gap-4 ">
+      <ul className="flex items-center justify-center gap-4 text-sm">
         {navItems.map(({ href, label }) => (
           <li key={`${href}-${label}`}>
             <NavBarItem
               href={href}
               label={label}
-              className="group text-muted-foreground data-[active=true]:text-primary group-hover:text-primary transition-colors"
+              className="group text-muted-foreground transition-colors group-hover:text-primary data-[active=true]:text-primary"
             />
           </li>
         ))}
       </ul>
-      <div className="flex items-center gap-1 justify-end">
+      <div className="flex items-center justify-end gap-1">
         <ThemeToggle />
         <Button variant="ghost" size="icon" className="rounded-full">
-          <BellIcon className="size-4 text-muted-foreground " />
+          <BellIcon className="size-4 text-muted-foreground" />
         </Button>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -211,14 +219,21 @@ function DesktopNavbar({ data }: { data: DashboardData }) {
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
               <DropdownMenuItem>Profile</DropdownMenuItem>
-              <DropdownMenuItem>Billing</DropdownMenuItem>
-              <DropdownMenuItem>Settings</DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/dashboard/settings/household">Household</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/dashboard/settings">Settings</Link>
+              </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
               <form action={signOut} className="w-full">
                 <DropdownMenuItem variant="destructive" asChild>
-                  <button type="submit" className="w-full text-left cursor-pointer">
+                  <button
+                    type="submit"
+                    className="w-full cursor-pointer text-left"
+                  >
                     Log out
                   </button>
                 </DropdownMenuItem>
@@ -228,5 +243,5 @@ function DesktopNavbar({ data }: { data: DashboardData }) {
         </DropdownMenu>
       </div>
     </div>
-  );
+  )
 }

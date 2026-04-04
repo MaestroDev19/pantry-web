@@ -65,7 +65,7 @@ export async function checkForHouseholdMembership(
       return { ok: true };
     }
 
-    console.error("Failed to create household.");
+    console.error("Failed to create household.", result.status, result.message);
     return { ok: false, code: "HOUSEHOLD_CREATE_FAILED" };
   } catch (err) {
     console.error("Failed to create household membership:", err);

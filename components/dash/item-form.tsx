@@ -9,7 +9,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { CATEGORY_OPTIONS } from "@/lib/types/shoppingtypes"
+import {
+  CATEGORY_OPTIONS,
+  getCategoryLabel,
+} from "@/lib/types/shoppingtypes"
 import { type CategoryEnum } from "@/lib/types/pantrytypes"
 
 type Props = {
@@ -86,8 +89,7 @@ export function ItemForm({
         <Select
           value={category}
           onValueChange={(value) => {
-            const next = CATEGORY_OPTIONS.find((o) => o.value === value)?.value
-            onCategoryChange(next ?? "Other")
+            onCategoryChange(getCategoryLabel(value) as CategoryEnum)
           }}
         >
           <SelectTrigger id="shopping-item-category" className="h-9 w-full">

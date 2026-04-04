@@ -13,21 +13,28 @@ const CATEGORY_SLUG_TO_ENUM: Record<string, CategoryEnum> = {
   dairy: "Dairy",
   "dairy-eggs": "Dairy",
   produce: "Produce",
+  /** FastAPI `UI_TO_API_CATEGORY` value for Meat & Seafood */
+  meat: "Meat & Seafood",
   "meat-seafood": "Meat & Seafood",
+  /** FastAPI pantry API */
+  grains: "Grains & Pasta",
   "bread-grains": "Grains & Pasta",
   "grains-pasta": "Grains & Pasta",
+  canned: "Canned Goods",
   "canned-dry-goods": "Canned Goods",
   "canned-goods": "Canned Goods",
   frozen: "Frozen",
   snacks: "Snacks",
   "snacks-beverages": "Snacks",
   beverages: "Beverages",
+  /** FastAPI `UI_TO_API_CATEGORY` for Condiments & Oils */
+  spices: "Condiments & Oils",
   "condiments-oils": "Condiments & Oils",
   baking: "Baking",
   other: "Other",
 };
 
-function normalizeCategory(value: unknown): CategoryEnum {
+export function normalizeCategory(value: unknown): CategoryEnum {
   if (typeof value !== "string") {
     return "Other";
   }

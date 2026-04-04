@@ -9,7 +9,11 @@ import type {
   UnitEnum,
 } from "@/lib/types/pantrytypes"
 
-/** Maps dashboard category labels to FastAPI `CategoryEnum` string values. */
+/**
+ * Maps dashboard labels to API category strings.
+ * Each UI category needs a distinct code so GET responses round-trip via
+ * `CATEGORY_SLUG_TO_ENUM` in `shoppingtypes.ts` (e.g. Snacks must not all map to `other`).
+ */
 const UI_TO_API_CATEGORY: Record<CategoryEnum, string> = {
   Dairy: "dairy",
   Produce: "produce",
@@ -17,10 +21,10 @@ const UI_TO_API_CATEGORY: Record<CategoryEnum, string> = {
   "Grains & Pasta": "grains",
   "Canned Goods": "canned",
   Frozen: "frozen",
-  Snacks: "other",
-  Beverages: "other",
+  Snacks: "snacks",
+  Beverages: "beverages",
   "Condiments & Oils": "spices",
-  Baking: "other",
+  Baking: "baking",
   Other: "other",
 }
 
