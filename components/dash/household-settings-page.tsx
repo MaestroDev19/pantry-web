@@ -89,9 +89,40 @@ export interface HouseholdSettingsPageProps {
   /** From Supabase `households.is_personal`; when false, show invite code instead of join-by-code UI. */
   householdIsPersonal: boolean
   initialInviteCode: string | null
+  /** Profiles for users in this household; empty or omitted falls back to the signed-in user only. */
+  initialHouseholdMembers?: UserProfile[]
 }
 
 const RENAME_NAME_MAX = 120
+
+function profileInitials(fullName: string | null | undefined): string {
+  const trimmed = fullName?.trim()
+  if (!trimmed) return "?"
+  const fromParts = trimmed
+    .split(/\s+/)
+    .map((p) => p[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase()
+  return fromParts || "?"
+}
+
+function dedupeMembers(members: UserProfile[]): UserProfile[] {
+  return [...new Map(members.map((m) => [m.id, m])).values()]
+}
+
+function sortHouseholdMembers(
+  members: UserProfile[],
+  currentUserId: string
+): UserProfile[] {
+  return [...members].sort((a, b) => {
+    if (a.id === currentUserId) return -1
+    if (b.id === currentUserId) return 1
+    const an = (a.full_name?.trim() || a.email).toLowerCase()
+    const bn = (b.full_name?.trim() || b.email).toLowerCase()
+    return an.localeCompare(bn)
+  })
+}
 
 export function HouseholdSettingsPage({
   user,
@@ -99,6 +130,7 @@ export function HouseholdSettingsPage({
   initialHouseholdName,
   householdIsPersonal,
   initialInviteCode,
+  initialHouseholdMembers,
 }: HouseholdSettingsPageProps) {
   const router = useRouter()
   const getAccessToken = usePantryAccessToken()
@@ -252,13 +284,19 @@ export function HouseholdSettingsPage({
     window.location.href = `mailto:?subject=${subject}&body=${body}`
   }, [initialInviteCode])
 
-  const initials =
-    user.full_name
-      ?.split(/\s+/)
-      .map((p) => p[0])
-      .join("")
-      .slice(0, 2)
-      .toUpperCase() || "?"
+  const householdMembersList = React.useMemo(() => {
+    if (!householdId) {
+      return [user]
+    }
+    let list =
+      initialHouseholdMembers && initialHouseholdMembers.length > 0
+        ? dedupeMembers(initialHouseholdMembers)
+        : [user]
+    if (!list.some((m) => m.id === user.id)) {
+      list = [user, ...list]
+    }
+    return sortHouseholdMembers(list, user.id)
+  }, [householdId, initialHouseholdMembers, user])
 
   return (
     <div className="@container/main mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6">
@@ -418,27 +456,44 @@ export function HouseholdSettingsPage({
         </CardHeader>
         <CardContent className="pt-4">
           <ItemGroup className="gap-2">
-            <Item variant="outline" size="sm" className="flex flex-wrap items-start">
-              <ItemMedia variant="image">
-                <Avatar className="size-10 rounded-md">
-                  <AvatarImage src={user.avatar_url ?? undefined} alt="" />
-                  <AvatarFallback className="rounded-md text-xs">
-                    {initials}
-                  </AvatarFallback>
-                </Avatar>
-              </ItemMedia>
-              <ItemContent className="min-w-0">
-                <ItemTitle className="no-underline line-clamp-none w-full text-pretty wrap-break-word">
-                  {user.full_name}
-                </ItemTitle>
-                <ItemDescription className="line-clamp-none wrap-break-word">
-                  {user.email}
-                </ItemDescription>
-              </ItemContent>
-              <Badge variant="secondary" className="ms-auto shrink-0">
-                You
-              </Badge>
-            </Item>
+            {householdMembersList.map((member) => {
+              const isYou = member.id === user.id
+              return (
+                <Item
+                  key={member.id}
+                  variant="outline"
+                  size="sm"
+                  className="flex flex-wrap items-start"
+                >
+                  <ItemMedia variant="image">
+                    <Avatar className="size-10 rounded-md">
+                      <AvatarImage
+                        src={member.avatar_url || undefined}
+                        alt=""
+                      />
+                      <AvatarFallback className="rounded-md text-xs">
+                        {profileInitials(member.full_name)}
+                      </AvatarFallback>
+                    </Avatar>
+                  </ItemMedia>
+                  <ItemContent className="min-w-0">
+                    <ItemTitle className="line-clamp-none w-full text-pretty wrap-break-word no-underline">
+                      {member.full_name?.trim()
+                        ? member.full_name
+                        : member.email || "Member"}
+                    </ItemTitle>
+                    <ItemDescription className="line-clamp-none wrap-break-word">
+                      {member.email}
+                    </ItemDescription>
+                  </ItemContent>
+                  {isYou ? (
+                    <Badge variant="secondary" className="ms-auto shrink-0">
+                      You
+                    </Badge>
+                  ) : null}
+                </Item>
+              )
+            })}
           </ItemGroup>
           <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <TypographyP className="text-xs text-muted-foreground">

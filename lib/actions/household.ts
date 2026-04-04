@@ -1,8 +1,10 @@
 import type { SupabaseClient } from "@supabase/supabase-js"
 
+import type { UserProfile } from "@/lib/dal/auth"
 import {
   HOUSEHOLD_MEMBERS_TABLE,
   HOUSEHOLDS_TABLE,
+  PROFILES_TABLE,
 } from "@/lib/constants/tables"
 export interface MembershipError {
   message?: string
@@ -206,6 +208,75 @@ export async function getHouseholdDetailsByUserId(
     },
     error: null,
   }
+}
+
+/**
+ * Profiles for every user in `household_members` for the given household.
+ * Requires RLS (or service role) that allows reading peer profiles in the household.
+ */
+export async function getHouseholdMemberProfilesByHouseholdId(
+  supabase: SupabaseClient,
+  householdId: string
+): Promise<{
+  data: UserProfile[]
+  error: MembershipError | null
+}> {
+  const { data: memberRows, error: membersError } = await supabase
+    .from(HOUSEHOLD_MEMBERS_TABLE)
+    .select("user_id")
+    .eq("household_id", householdId)
+
+  if (membersError) {
+    return {
+      data: [],
+      error: {
+        message: membersError.message,
+        code: membersError.code,
+        hint: membersError.hint,
+      },
+    }
+  }
+
+  const userIds = (memberRows ?? [])
+    .map((row) => (row as { user_id: string }).user_id)
+    .filter((id): id is string => typeof id === "string" && id.length > 0)
+
+  if (userIds.length === 0) {
+    return { data: [], error: null }
+  }
+
+  const { data: profileRows, error: profilesError } = await supabase
+    .from(PROFILES_TABLE)
+    .select("id, email, full_name, avatar_url")
+    .in("id", userIds)
+
+  if (profilesError) {
+    return {
+      data: [],
+      error: {
+        message: profilesError.message,
+        code: profilesError.code,
+        hint: profilesError.hint,
+      },
+    }
+  }
+
+  const list: UserProfile[] = (profileRows ?? []).map((p) => {
+    const row = p as {
+      id: string
+      email: string | null
+      full_name: string | null
+      avatar_url: string | null
+    }
+    return {
+      id: row.id,
+      email: row.email ?? "",
+      full_name: row.full_name ?? "",
+      avatar_url: row.avatar_url ?? "",
+    }
+  })
+
+  return { data: list, error: null }
 }
 
 function isHouseholdApiResponse(data: unknown): data is HouseholdApiResponse {

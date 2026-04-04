@@ -1,7 +1,11 @@
 import { redirect } from "next/navigation"
 
 import { HouseholdSettingsPage } from "@/components/dash/household-settings-page"
-import { getHouseholdDetailsByUserId } from "@/lib/actions/household"
+import type { UserProfile } from "@/lib/dal/auth"
+import {
+  getHouseholdDetailsByUserId,
+  getHouseholdMemberProfilesByHouseholdId,
+} from "@/lib/actions/household"
 import { getDashboardData } from "@/lib/utils/dashboard"
 import { createClient } from "@/lib/supabase/server"
 
@@ -19,6 +23,18 @@ export default async function HouseholdSettingsRoute() {
 
   const isPersonal = household?.is_personal !== false
 
+  let initialHouseholdMembers: UserProfile[] = []
+  if (household?.household_id) {
+    const { data: members, error } =
+      await getHouseholdMemberProfilesByHouseholdId(
+        supabase,
+        household.household_id
+      )
+    if (!error) {
+      initialHouseholdMembers = members
+    }
+  }
+
   return (
     <HouseholdSettingsPage
       user={data.userProfile.user}
@@ -26,6 +42,7 @@ export default async function HouseholdSettingsRoute() {
       initialHouseholdName={household?.name ?? undefined}
       householdIsPersonal={isPersonal}
       initialInviteCode={household?.invite_code ?? null}
+      initialHouseholdMembers={initialHouseholdMembers}
     />
   )
 }
