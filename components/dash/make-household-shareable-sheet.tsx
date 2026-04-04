@@ -97,7 +97,7 @@ export function MakeHouseholdShareableSheet({
 
   const body = (
     <>
-      <div className="relative min-h-[11rem] w-full shrink-0 overflow-hidden sm:min-h-[12.5rem]">
+      <div className="relative min-h-44 w-full shrink-0 overflow-hidden sm:min-h-50">
         <Image
           src={KITCHEN_HERO}
           alt=""
@@ -107,10 +107,10 @@ export function MakeHouseholdShareableSheet({
           priority={open}
         />
         <div
-          className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/55 to-primary"
+          className="absolute inset-0 bg-linear-to-t from-black/90 via-black/55 to-primary"
           aria-hidden
         />
-        <DialogTitle className="absolute inset-x-4 bottom-4 z-[1] text-center text-xl font-semibold tracking-tight text-balance text-muted-foreground sm:text-2xl">
+        <DialogTitle className="absolute inset-x-4 bottom-4 z-1 text-center text-xl font-semibold tracking-tight text-balance text-muted-foreground sm:text-2xl">
           Make this household shareable?
         </DialogTitle>
       </div>
@@ -176,7 +176,7 @@ export function MakeHouseholdShareableSheet({
 
   const drawerBody = (
     <>
-      <div className="relative min-h-[11rem] w-full shrink-0 overflow-hidden">
+      <div className="relative min-h-44 w-full shrink-0 overflow-hidden">
         <Image
           src={KITCHEN_HERO}
           alt=""
@@ -186,10 +186,10 @@ export function MakeHouseholdShareableSheet({
           priority={open}
         />
         <div
-          className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/55 to-emerald-950/40"
+          className="absolute inset-0 bg-linear-to-t from-black/90 via-black/55 to-primary"
           aria-hidden
         />
-        <DrawerTitle className="absolute inset-x-4 bottom-4 z-[1] text-center text-xl font-semibold tracking-tight text-balance text-white">
+        <DrawerTitle className="absolute inset-x-4 bottom-4 z-1 text-center text-xl font-semibold tracking-tight text-balance text-white">
           Make this household shareable?
         </DrawerTitle>
       </div>
@@ -240,7 +240,7 @@ export function MakeHouseholdShareableSheet({
           disabled={!acknowledged || submitting}
           onClick={() => void handleMakeShareable()}
           className={cn(
-            "rounded-full border-0 bg-gradient-to-r from-emerald-900 to-emerald-500 font-semibold text-white shadow-md",
+            "rounded-full border-0 bg-linear-to-r from-emerald-900 to-emerald-500 font-semibold text-white shadow-md",
             "hover:from-emerald-950 hover:to-emerald-600 hover:opacity-[0.98]"
           )}
         >
