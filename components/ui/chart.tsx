@@ -8,6 +8,31 @@ import { cn } from "@/lib/utils"
 // Format: { THEME_NAME: CSS_SELECTOR }
 const THEMES = { light: "", dark: ".dark" } as const
 
+function escapeCssStringValue(value: string): string {
+  // CSS string content inside double quotes.
+  return value.replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/\n/g, "\\a ")
+}
+
+function escapeCssVarNamePart(value: string): string {
+  // Restrict to safe characters for a custom property suffix.
+  // Invalid chars are replaced to avoid breaking the generated stylesheet.
+  return value.replace(/[^a-zA-Z0-9_-]/g, "_")
+}
+
+function isSafeCssColor(value: string): boolean {
+  const v = value.trim()
+  if (!v) return false
+  if (/^#[0-9a-fA-F]{3,4}$/.test(v)) return true
+  if (/^#[0-9a-fA-F]{6}([0-9a-fA-F]{2})?$/.test(v)) return true
+  if (/^rgba?\(\s*[\d.\s,%]+\s*\)$/.test(v)) return true
+  if (/^hsla?\(\s*[\d.\s,%]+\s*\)$/.test(v)) return true
+  if (/^var\(--[a-zA-Z0-9_-]+\)$/.test(v)) return true
+  if (/^(transparent|currentColor|inherit|initial|revert|revert-layer|unset)$/.test(v))
+    return true
+  if (/^[a-zA-Z]+$/.test(v)) return true
+  return false
+}
+
 export type ChartConfig = {
   [k in string]: {
     label?: React.ReactNode
@@ -78,27 +103,26 @@ const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
     return null
   }
 
+  const cssText = Object.entries(THEMES)
+    .map(([theme, prefix]) => {
+      const selector = `${prefix} [data-chart="${escapeCssStringValue(id)}"]`
+      const vars = colorConfig
+        .map(([key, itemConfig]) => {
+          const rawColor =
+            itemConfig.theme?.[theme as keyof typeof itemConfig.theme] ||
+            itemConfig.color
+          if (!rawColor || !isSafeCssColor(rawColor)) return null
+          return `  --color-${escapeCssVarNamePart(key)}: ${rawColor.trim()};`
+        })
+        .filter(Boolean)
+        .join("\n")
+
+      return `\n${selector} {\n${vars}\n}\n`
+    })
+    .join("\n")
+
   return (
-    <style
-      dangerouslySetInnerHTML={{
-        __html: Object.entries(THEMES)
-          .map(
-            ([theme, prefix]) => `
-${prefix} [data-chart=${id}] {
-${colorConfig
-  .map(([key, itemConfig]) => {
-    const color =
-      itemConfig.theme?.[theme as keyof typeof itemConfig.theme] ||
-      itemConfig.color
-    return color ? `  --color-${key}: ${color};` : null
-  })
-  .join("\n")}
-}
-`
-          )
-          .join("\n"),
-      }}
-    />
+    <style>{cssText}</style>
   )
 }
 
