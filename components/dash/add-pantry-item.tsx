@@ -334,7 +334,7 @@ export function AddPantryItem({
             Add an inventory item to your household pantry.
           </DrawerDescription>
         </DrawerHeader>
-        <ScrollArea className="flex-1 px-4 pb-2">
+        <ScrollArea className="min-h-0 flex-1 px-4 pb-2">
           {content}
         </ScrollArea>
         <DrawerFooter />
