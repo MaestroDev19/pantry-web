@@ -34,6 +34,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   Drawer,
   DrawerContent,
@@ -53,6 +54,7 @@ import { addPantryItem } from "@/lib/api/pantry"
 import { useMediaQuery } from "@/lib/hooks/use-media-query"
 import { useRouter } from "next/navigation"
 import { MY_PANTRY_ITEMS_SWR_KEY } from "@/lib/hooks/use-my-pantry-items"
+import { BulkAddPantryItemsForm } from "@/components/dash/bulk-add-pantry-items"
 
 function buildInsertPayload(values: {
   name: string
@@ -267,9 +269,11 @@ function AddPantryItemForm({
 export function AddPantryItem({
   triggerLabel = "Add item",
   onItemAdded,
+  defaultTab = "single",
 }: {
   triggerLabel?: string
   onItemAdded?: () => void
+  defaultTab?: "single" | "bulk"
 }) {
   const isDesktop = useMediaQuery("(min-width: 640px)")
   const [open, setOpen] = React.useState(false)
@@ -285,6 +289,21 @@ export function AddPantryItem({
     </Button>
   )
 
+  const content = (
+    <Tabs defaultValue={defaultTab} className="gap-4">
+      <TabsList>
+        <TabsTrigger value="single">Single item</TabsTrigger>
+        <TabsTrigger value="bulk">Bulk add</TabsTrigger>
+      </TabsList>
+      <TabsContent value="single" className="mt-2">
+        <AddPantryItemForm onSuccess={onSuccess} onItemAdded={onItemAdded} />
+      </TabsContent>
+      <TabsContent value="bulk" className="mt-2">
+        <BulkAddPantryItemsForm onSuccess={onSuccess} onItemAdded={onItemAdded} />
+      </TabsContent>
+    </Tabs>
+  )
+
   if (isDesktop) {
     return (
       <Dialog open={open} onOpenChange={setOpen}>
@@ -297,10 +316,7 @@ export function AddPantryItem({
             </DialogDescription>
           </DialogHeader>
           <ScrollArea className="max-h-[60vh] pr-2">
-            <AddPantryItemForm
-              onSuccess={onSuccess}
-              onItemAdded={onItemAdded}
-            />
+            {content}
           </ScrollArea>
           <DialogFooter />
         </DialogContent>
@@ -319,7 +335,7 @@ export function AddPantryItem({
           </DrawerDescription>
         </DrawerHeader>
         <ScrollArea className="flex-1 px-4 pb-2">
-          <AddPantryItemForm onSuccess={onSuccess} onItemAdded={onItemAdded} />
+          {content}
         </ScrollArea>
         <DrawerFooter />
       </DrawerContent>

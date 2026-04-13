@@ -128,6 +128,34 @@ export async function addPantryItem(input: PantryItemInsert): Promise<{
   })
 }
 
+function mapBulkInsertToApiBody(input: PantryItemInsert): Record<string, unknown> {
+  const body: Record<string, unknown> = {
+    name: input.name,
+    category: UI_TO_API_CATEGORY[input.category],
+    quantity: input.quantity ?? 1,
+  }
+
+  if (input.expiry_date) {
+    body.expiry_date = input.expiry_date
+  }
+
+  return body
+}
+
+export async function addBulkPantryItems(inputs: PantryItemInsert[]): Promise<{
+  ok: boolean
+  status: number
+  data: unknown
+}> {
+  return await callPantryApi({
+    path: "/api/pantry-items/add-bulk-items",
+    method: "POST",
+    body: {
+      items: inputs.map(mapBulkInsertToApiBody),
+    },
+  })
+}
+
 function parsePantryItemsResponse(
   res: { ok: boolean; data: unknown },
 ): PantryItem[] | unknown {

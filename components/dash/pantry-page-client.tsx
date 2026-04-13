@@ -113,6 +113,7 @@ function PantryItemsPanel({
       <EmptyContent>
         <AddPantryItem
           triggerLabel={addTriggerLabel}
+          defaultTab="bulk"
           onItemAdded={onItemAdded}
         />
       </EmptyContent>
