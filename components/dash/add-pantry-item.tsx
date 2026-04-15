@@ -821,6 +821,12 @@ export function AddPantryItem({
     setOpen(false)
   }, [])
 
+  const wizard = useAddPantryItemMobileWizard({
+    defaultTab,
+    onItemAdded,
+    onClose: onSuccess,
+  })
+
   const trigger = (
     <Button>
       <Plus data-icon="inline-start" />
@@ -873,23 +879,14 @@ export function AddPantryItem({
             Add an inventory item to your household pantry.
           </DrawerDescription>
         </DrawerHeader>
-        {(() => {
-          const wizard = useAddPantryItemMobileWizard({
-            defaultTab,
-            onItemAdded,
-            onClose: onSuccess,
-          })
-          return (
-            <>
-              <ScrollArea className="min-h-0 flex-1 px-4 pb-2">
-                {wizard.body}
-              </ScrollArea>
-              <DrawerFooter className="border-t border-border bg-background/80 supports-backdrop-filter:bg-background/60 supports-backdrop-filter:backdrop-blur">
-                {wizard.footer}
-              </DrawerFooter>
-            </>
-          )
-        })()}
+        <>
+          <ScrollArea className="min-h-0 flex-1 px-4 pb-2">
+            {wizard.body}
+          </ScrollArea>
+          <DrawerFooter className="border-t border-border bg-background/80 supports-backdrop-filter:bg-background/60 supports-backdrop-filter:backdrop-blur">
+            {wizard.footer}
+          </DrawerFooter>
+        </>
       </DrawerContent>
     </Drawer>
   )
