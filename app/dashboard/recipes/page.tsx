@@ -1,6 +1,6 @@
-import Link from "next/link";
+import Link from "next/link"
 
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,
@@ -8,7 +8,7 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
+} from "@/components/ui/card"
 
 export default function RecipesPage() {
   return (
@@ -23,6 +23,7 @@ export default function RecipesPage() {
         <CardContent className="text-sm text-muted-foreground">
           This area will connect to Chef ACE and your inventory when the backend
           integration is ready.
+          <Link href="/dashboard/recipes/123">Recipe 123</Link>
         </CardContent>
         <CardFooter>
           <Button asChild variant="secondary">
@@ -31,5 +32,5 @@ export default function RecipesPage() {
         </CardFooter>
       </Card>
     </div>
-  );
+  )
 }
