@@ -1,11 +1,10 @@
 import { createServerClient } from "@supabase/ssr"
 import { cookies } from "next/headers"
 
-function getRequiredPublicEnv(name: "NEXT_PUBLIC_SUPABASE_URL" | "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY"): string {
-  const value = process.env[name]
+function getRequiredPublicEnv(value: string | undefined, nameForError: string): string {
   if (!value) {
     throw new Error(
-      `Missing required environment variable: ${name}. ` +
+      `Missing required environment variable: ${nameForError}. ` +
         "Your Supabase project's URL and publishable key are required to create a Supabase client."
     )
   }
@@ -15,9 +14,18 @@ function getRequiredPublicEnv(name: "NEXT_PUBLIC_SUPABASE_URL" | "NEXT_PUBLIC_SU
 export async function createClient() {
   const cookieStore = await cookies()
 
+  const supabaseUrl = getRequiredPublicEnv(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    "NEXT_PUBLIC_SUPABASE_URL"
+  )
+  const supabasePublishableKey = getRequiredPublicEnv(
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+    "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY"
+  )
+
   return createServerClient(
-    getRequiredPublicEnv("NEXT_PUBLIC_SUPABASE_URL"),
-    getRequiredPublicEnv("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY"),
+    supabaseUrl,
+    supabasePublishableKey,
     {
       cookies: {
         getAll() {

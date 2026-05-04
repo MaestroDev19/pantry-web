@@ -1,11 +1,10 @@
 import { createServerClient } from "@supabase/ssr"
 import { NextResponse, type NextRequest } from "next/server"
 
-function getRequiredPublicEnv(name: "NEXT_PUBLIC_SUPABASE_URL" | "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY"): string {
-  const value = process.env[name]
+function getRequiredPublicEnv(value: string | undefined, nameForError: string): string {
   if (!value) {
     throw new Error(
-      `Missing required environment variable: ${name}. ` +
+      `Missing required environment variable: ${nameForError}. ` +
         "Your Supabase project's URL and publishable key are required to create a Supabase client."
     )
   }
@@ -17,11 +16,20 @@ export async function updateSession(request: NextRequest) {
     request,
   })
 
+  const supabaseUrl = getRequiredPublicEnv(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    "NEXT_PUBLIC_SUPABASE_URL"
+  )
+  const supabasePublishableKey = getRequiredPublicEnv(
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+    "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY"
+  )
+
   // With Fluid compute, don't put this client in a global environment
   // variable. Always create a new one on each request.
   const supabase = createServerClient(
-    getRequiredPublicEnv("NEXT_PUBLIC_SUPABASE_URL"),
-    getRequiredPublicEnv("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY"),
+    supabaseUrl,
+    supabasePublishableKey,
     {
       cookies: {
         getAll() {
