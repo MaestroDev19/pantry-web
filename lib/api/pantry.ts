@@ -6,8 +6,12 @@ import type {
   CategoryEnum,
   PantryItem,
   PantryItemInsert,
+  PantryItemUpdate,
   UnitEnum,
 } from "@/lib/types/pantrytypes"
+import { RECIPES_RANDOM_PATH } from "@/lib/types/recipetypes"
+import type { MealDbRandomRecipe } from "@/lib/types/recipetypes"
+import { parseMealDbRandomRecipe } from "@/lib/utils/recipe-parse"
 
 /**
  * Maps dashboard labels to API category strings.
@@ -71,7 +75,7 @@ function mapInsertToApiBody(input: PantryItemInsert): Record<string, unknown> {
   return body
 }
 
-type HttpMethod = "GET" | "POST" | "PUT" | "DELETE"
+type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE"
 
 /** FastAPI `pantry_router.get("/get-my-items")` */
 export const PANTRY_GET_MY_ITEMS_PATH = "/api/pantry-items/get-my-items" as const
@@ -79,6 +83,16 @@ export const PANTRY_GET_MY_ITEMS_PATH = "/api/pantry-items/get-my-items" as cons
 /** FastAPI `pantry_router.get("/get-household-pantry")` */
 export const PANTRY_GET_HOUSEHOLD_PATH =
   "/api/pantry-items/get-household-pantry" as const
+
+/** FastAPI `pantry_router.delete("/delete-my-item/{item_id}")` */
+export function pantryDeleteMyItemPath(itemId: string): string {
+  return `/api/pantry-items/delete-my-item/${itemId}`
+}
+
+/** FastAPI `pantry_router.patch("/update-my-item/{item_id}")` */
+export function pantryUpdateMyItemPath(itemId: string): string {
+  return `/api/pantry-items/update-my-item/${itemId}`
+}
 
 async function getAccessToken(): Promise<string | null> {
   const supabase = createClient()
@@ -129,14 +143,30 @@ export async function addPantryItem(input: PantryItemInsert): Promise<{
 }
 
 function mapBulkInsertToApiBody(input: PantryItemInsert): Record<string, unknown> {
-  const body: Record<string, unknown> = {
-    name: input.name,
-    category: UI_TO_API_CATEGORY[input.category],
-    quantity: input.quantity ?? 1,
-  }
+  return mapInsertToApiBody(input)
+}
 
-  if (input.expiry_date) {
-    body.expiry_date = input.expiry_date
+function mapUpdateToApiBody(input: PantryItemUpdate): Record<string, unknown> {
+  const body: Record<string, unknown> = {}
+
+  if (input.name != null) {
+    body.name = input.name
+  }
+  if (input.category != null) {
+    body.category = UI_TO_API_CATEGORY[input.category]
+  }
+  if (input.quantity != null) {
+    body.quantity = input.quantity
+  }
+  if (input.unit != null) {
+    const rawUnit = input.unit
+    body.unit =
+      typeof rawUnit === "string" && rawUnit in UI_TO_API_UNIT
+        ? UI_TO_API_UNIT[rawUnit as UnitEnum]
+        : "piece"
+  }
+  if (input.expiry_date !== undefined) {
+    body.expiry_date = input.expiry_date || null
   }
 
   return body
@@ -187,6 +217,32 @@ export async function getMyPantryItems(): Promise<{
   }
 }
 
+export async function deletePantryItem(itemId: string): Promise<{
+  ok: boolean
+  status: number
+  data: unknown
+}> {
+  return await callPantryApi({
+    path: pantryDeleteMyItemPath(itemId),
+    method: "DELETE",
+  })
+}
+
+export async function updatePantryItem(
+  itemId: string,
+  input: PantryItemUpdate
+): Promise<{
+  ok: boolean
+  status: number
+  data: unknown
+}> {
+  return await callPantryApi({
+    path: pantryUpdateMyItemPath(itemId),
+    method: "PATCH",
+    body: mapUpdateToApiBody(input),
+  })
+}
+
 export async function getHouseholdPantryItems(): Promise<{
   ok: boolean
   status: number
@@ -221,3 +277,19 @@ export function filterMyPantryItems(
   return items.filter((item) => item.owner_id === userId)
 }
 
+/** FastAPI `recipes_router.get("/get-random-recipe")` — cached TheMealDB random recipe. */
+export async function getRandomRecipe(): Promise<MealDbRandomRecipe> {
+  const res = await callPantryApi({
+    path: RECIPES_RANDOM_PATH,
+    method: "GET",
+  })
+
+  if (!res.ok) {
+    if (res.status === 429) {
+      throw new Error("Rate limit exceeded. Try again in a minute.")
+    }
+    throw new Error(`Failed to load random recipe (${res.status})`)
+  }
+
+  return parseMealDbRandomRecipe(res.data)
+}

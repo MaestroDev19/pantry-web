@@ -2,7 +2,6 @@
 
 import * as React from "react"
 import type { ColumnDef } from "@tanstack/react-table"
-import { toast } from "sonner"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 
 import {
@@ -19,28 +18,14 @@ import { TypographyH2, TypographyP } from "@/components/ui/typography"
 import { AddPantryItem } from "@/components/dash/add-pantry-item"
 import { PantryDataTable } from "@/components/dash/pantry-data-table"
 import {
-  pantryColumns,
-  pantryHouseholdColumns,
+  createPantryColumns,
+  createPantryHouseholdColumns,
 } from "@/components/dash/pantry-columns"
-import {
-  getHouseholdPantryItems,
-  getMyPantryItems,
-} from "@/lib/api/pantry"
+import { useHouseholdPantryItems } from "@/lib/hooks/use-household-pantry-items"
+import { useMyPantryItems } from "@/lib/hooks/use-my-pantry-items"
+import { revalidatePantryItems } from "@/lib/hooks/pantry-cache"
+import { createClient } from "@/lib/supabase/client"
 import type { PantryItem } from "@/lib/types/pantrytypes"
-
-function isPantryItemArray(value: unknown): value is PantryItem[] {
-  return (
-    Array.isArray(value) &&
-    value.every(
-      (item) =>
-        item &&
-        typeof item === "object" &&
-        "id" in item &&
-        "name" in item &&
-        "category" in item
-    )
-  )
-}
 
 function PantryTableSkeleton() {
   return (
@@ -84,7 +69,7 @@ function PantryTableSkeleton() {
 }
 
 interface PantryItemsPanelProps {
-  columns?: ColumnDef<PantryItem>[]
+  columns: ColumnDef<PantryItem>[]
   items: PantryItem[]
   emptyTitle: string
   emptyDescription: string
@@ -93,7 +78,7 @@ interface PantryItemsPanelProps {
 }
 
 function PantryItemsPanel({
-  columns = pantryColumns,
+  columns,
   items,
   emptyTitle,
   emptyDescription,
@@ -122,42 +107,44 @@ function PantryItemsPanel({
 }
 
 export function PantryPageClient() {
-  const [householdItems, setHouseholdItems] = React.useState<
-    PantryItem[] | null
-  >(null)
-  const [myItems, setMyItems] = React.useState<PantryItem[] | null>(null)
-  const [isLoading, setIsLoading] = React.useState(false)
+  const { items: myItems, isLoading: myLoading } = useMyPantryItems()
+  const { items: householdItems, isLoading: householdLoading } =
+    useHouseholdPantryItems()
+  const [currentUserId, setCurrentUserId] = React.useState<string | null>(null)
 
-  const load = React.useCallback(async () => {
-    try {
-      setIsLoading(true)
-      const [houseRes, myRes] = await Promise.all([
-        getHouseholdPantryItems(),
-        getMyPantryItems(),
-      ])
-      if (!houseRes.ok || !myRes.ok) {
-        toast.error("Failed to load pantry items")
-        setHouseholdItems([])
-        setMyItems([])
-        return
-      }
-      setHouseholdItems(
-        isPantryItemArray(houseRes.data) ? houseRes.data : [],
-      )
-      setMyItems(isPantryItemArray(myRes.data) ? myRes.data : [])
-    } catch (error: unknown) {
-      const err = error as Error
-      toast.error(err.message)
-      setHouseholdItems([])
-      setMyItems([])
-    } finally {
-      setIsLoading(false)
-    }
-  }, [])
+  const isInitialLoad = myLoading && householdLoading
 
   React.useEffect(() => {
-    void load()
-  }, [load])
+    const supabase = createClient()
+    void supabase.auth.getUser().then(({ data, error }) => {
+      if (error) return
+      setCurrentUserId(data.user?.id ?? null)
+    })
+  }, [])
+
+  const handlePantryChanged = React.useCallback(() => {
+    void revalidatePantryItems()
+  }, [])
+
+  const myPantryColumns = React.useMemo(
+    () =>
+      createPantryColumns({
+        currentUserId,
+        onItemDeleted: handlePantryChanged,
+        onItemUpdated: handlePantryChanged,
+      }),
+    [currentUserId, handlePantryChanged],
+  )
+
+  const householdPantryColumns = React.useMemo(
+    () =>
+      createPantryHouseholdColumns({
+        currentUserId,
+        onItemDeleted: handlePantryChanged,
+        onItemUpdated: handlePantryChanged,
+      }),
+    [currentUserId, handlePantryChanged],
+  )
 
   return (
     <div className="flex flex-col gap-6">
@@ -168,10 +155,10 @@ export function PantryPageClient() {
             Switch between items you own and the full household inventory.
           </TypographyP>
         </div>
-        <AddPantryItem onItemAdded={load} />
+        <AddPantryItem onItemAdded={handlePantryChanged} />
       </div>
 
-      {isLoading && householdItems == null && myItems == null ? (
+      {isInitialLoad ? (
         <PantryTableSkeleton />
       ) : (
         <Tabs defaultValue="household" className="gap-4">
@@ -181,29 +168,30 @@ export function PantryPageClient() {
           </TabsList>
           <TabsContent value="my" className="mt-4">
             <PantryItemsPanel
-              items={myItems ?? []}
+              columns={myPantryColumns}
+              items={myItems}
               emptyTitle="No items in your pantry"
               emptyDescription={
-                (householdItems?.length ?? 0) > 0
+                householdItems.length > 0
                   ? "You have no items attributed to your account in this household."
                   : "Add pantry items to see freshness, warnings, and category breakdowns."
               }
               addTriggerLabel={
-                (householdItems?.length ?? 0) > 0
+                householdItems.length > 0
                   ? "Add an item"
                   : "Add your first item"
               }
-              onItemAdded={load}
+              onItemAdded={handlePantryChanged}
             />
           </TabsContent>
           <TabsContent value="household" className="mt-4">
             <PantryItemsPanel
-              columns={pantryHouseholdColumns}
-              items={householdItems ?? []}
+              columns={householdPantryColumns}
+              items={householdItems}
               emptyTitle="No pantry items yet"
               emptyDescription="Add pantry items to see freshness, warnings, and category breakdowns."
               addTriggerLabel="Add your first item"
-              onItemAdded={load}
+              onItemAdded={handlePantryChanged}
             />
           </TabsContent>
         </Tabs>

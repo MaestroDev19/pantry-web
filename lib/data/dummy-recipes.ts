@@ -1,0 +1,172 @@
+import type { RecipeDetailView } from "@/lib/types/recipetypes"
+
+export interface DummyRecipe extends RecipeDetailView {
+  source: "dummy"
+  description: string
+}
+
+export const DUMMY_RECIPES: DummyRecipe[] = [
+  {
+    id: "101",
+    title: "Garlic Butter Pasta",
+    description: "Quick pantry pasta with garlic, butter, and herbs.",
+    subtitle: "Sample recipe",
+    source: "dummy",
+    category: "pasta",
+    tags: ["quick", "vegetarian"],
+    ingredients: [
+      "400 g spaghetti",
+      "4 tbsp butter",
+      "4 cloves garlic, minced",
+      "1/4 tsp red pepper flakes",
+      "1/2 cup grated parmesan",
+      "2 tbsp fresh parsley, chopped",
+      "Salt and black pepper",
+    ],
+    instructions: [
+      "Cook spaghetti in salted boiling water until al dente. Reserve 1 cup pasta water, then drain.",
+      "Melt butter in a large pan over medium heat. Add garlic and red pepper flakes; cook until fragrant, about 1 minute.",
+      "Toss pasta in the pan with butter sauce, adding pasta water as needed for a silky coating.",
+      "Remove from heat, stir in parmesan and parsley, and season to taste. Serve immediately.",
+    ],
+  },
+  {
+    id: "102",
+    title: "Sheet-Pan Chicken & Veg",
+    description: "One-pan dinner with a simple lemon-pepper finish.",
+    subtitle: "Sample recipe",
+    source: "dummy",
+    category: "dinner",
+    tags: ["one-pan", "high-protein"],
+    ingredients: [
+      "4 chicken thighs, bone-in",
+      "2 cups broccoli florets",
+      "1 red bell pepper, chunked",
+      "1 red onion, wedged",
+      "3 tbsp olive oil",
+      "1 lemon, juiced",
+      "2 tsp garlic powder",
+      "1 tsp paprika",
+      "Salt and pepper",
+    ],
+    instructions: [
+      "Heat oven to 425°F (220°C). Line a sheet pan with parchment.",
+      "Toss vegetables with 2 tbsp oil, salt, and pepper; spread on the pan.",
+      "Rub chicken with remaining oil, lemon juice, garlic powder, paprika, salt, and pepper.",
+      "Nestle chicken among vegetables and roast 35–40 minutes until chicken reaches 165°F (74°C).",
+      "Rest 5 minutes, then serve with pan juices spooned over the top.",
+    ],
+  },
+  {
+    id: "103",
+    title: "Tomato Lentil Soup",
+    description: "Cozy soup with lentils, tomatoes, and warm spices.",
+    subtitle: "Sample recipe",
+    source: "dummy",
+    category: "soup",
+    tags: ["comfort", "vegan"],
+    ingredients: [
+      "1 tbsp olive oil",
+      "1 onion, diced",
+      "2 carrots, diced",
+      "2 celery stalks, diced",
+      "3 cloves garlic, minced",
+      "1 cup red lentils, rinsed",
+      "1 can (28 oz) crushed tomatoes",
+      "4 cups vegetable broth",
+      "1 tsp cumin",
+      "1/2 tsp smoked paprika",
+      "Salt and pepper",
+    ],
+    instructions: [
+      "Warm oil in a pot over medium heat. Sauté onion, carrot, and celery until softened, 6–8 minutes.",
+      "Stir in garlic, cumin, and paprika; cook 30 seconds.",
+      "Add lentils, tomatoes, and broth. Bring to a boil, then simmer 25 minutes until lentils break down.",
+      "Season with salt and pepper. Blend partially for a thicker texture if desired, and serve hot.",
+    ],
+  },
+  {
+    id: "104",
+    title: "Tuna Rice Bowl",
+    description: "Fast bowl with tuna, rice, and a tangy soy-lime drizzle.",
+    subtitle: "Sample recipe",
+    source: "dummy",
+    category: "bowl",
+    tags: ["quick", "lunch"],
+    ingredients: [
+      "2 cups cooked rice",
+      "2 cans tuna, drained",
+      "1 cucumber, sliced",
+      "1 avocado, sliced",
+      "2 tbsp soy sauce",
+      "1 tbsp lime juice",
+      "1 tsp sesame oil",
+      "1 tsp honey",
+      "Sesame seeds and scallions",
+    ],
+    instructions: [
+      "Whisk soy sauce, lime juice, sesame oil, and honey for the drizzle.",
+      "Divide rice between bowls. Top with tuna, cucumber, and avocado.",
+      "Drizzle with sauce and finish with sesame seeds and scallions.",
+      "Serve immediately while rice is warm.",
+    ],
+  },
+  {
+    id: "105",
+    title: "Crispy Chickpea Salad",
+    description: "Crunchy chickpeas over greens with a simple vinaigrette.",
+    subtitle: "Sample recipe",
+    source: "dummy",
+    category: "salad",
+    tags: ["healthy", "vegetarian"],
+    ingredients: [
+      "1 can chickpeas, drained and patted dry",
+      "1 tbsp olive oil",
+      "1 tsp smoked paprika",
+      "6 cups mixed greens",
+      "1/2 cup cherry tomatoes, halved",
+      "1/4 red onion, thinly sliced",
+      "2 tbsp olive oil",
+      "1 tbsp red wine vinegar",
+      "Salt and pepper",
+    ],
+    instructions: [
+      "Toss chickpeas with 1 tbsp oil, paprika, salt, and pepper. Roast at 425°F (220°C) for 20 minutes until crisp.",
+      "Whisk remaining oil, vinegar, salt, and pepper for dressing.",
+      "Toss greens, tomatoes, and onion with dressing.",
+      "Top salad with crispy chickpeas and serve right away.",
+    ],
+  },
+  {
+    id: "106",
+    title: "Peanut Noodles",
+    description: "Creamy peanut sauce noodles with a hint of heat.",
+    subtitle: "Sample recipe",
+    source: "dummy",
+    category: "pasta",
+    tags: ["quick", "spicy"],
+    ingredients: [
+      "300 g noodles",
+      "1/3 cup peanut butter",
+      "2 tbsp soy sauce",
+      "1 tbsp lime juice",
+      "1 tbsp honey",
+      "1 tsp sriracha",
+      "2 cloves garlic, grated",
+      "2 tbsp warm water",
+      "Shredded carrots and peanuts for topping",
+    ],
+    instructions: [
+      "Cook noodles according to package directions; drain.",
+      "Whisk peanut butter, soy sauce, lime juice, honey, sriracha, garlic, and warm water until smooth.",
+      "Toss hot noodles with sauce until evenly coated.",
+      "Serve topped with shredded carrots and crushed peanuts.",
+    ],
+  },
+]
+
+const dummyById = new Map(DUMMY_RECIPES.map((recipe) => [recipe.id, recipe]))
+
+export function getDummyRecipeById(recipeId: string): DummyRecipe | null {
+  return dummyById.get(recipeId) ?? null
+}

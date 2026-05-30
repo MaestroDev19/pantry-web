@@ -11,11 +11,14 @@ export function getPantryUpstreamOrigin(): string {
   if (explicit) return normalizeBaseUrl(explicit)
 
   if (process.env.NODE_ENV === "development") {
-    const dev = process.env.NEXT_PUBLIC_DEV_API_URL?.trim()
+    const dev = process.env.NEXT_PUBLIC_PANTRY_API_URL?.trim()
     if (dev) return normalizeBaseUrl(dev)
   }
 
-  for (const key of ["NEXT_PUBLIC_API_URL", "NEXT_PUBLIC_PANTRY_API_URL"] as const) {
+  for (const key of [
+    "NEXT_PUBLIC_PANTRY_API_URL",
+    "NEXT_PUBLIC_API_URL",
+  ] as const) {
     const url = process.env[key]?.trim()
     if (url) return normalizeBaseUrl(url)
   }

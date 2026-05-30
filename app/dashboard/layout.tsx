@@ -1,5 +1,6 @@
 import { HouseholdStatusBanner } from "@/components/dash/household-status-banner"
 import { NavBar } from "@/components/nav"
+import { DashboardProviders } from "@/components/providers/dashboard-providers"
 import { getDashboardData } from "@/lib/utils/dashboard"
 import { redirect } from "next/navigation"
 
@@ -23,7 +24,7 @@ export default async function DashboardLayout({
         </div>
       </div>
       <div className="mx-auto flex w-full flex-1 flex-col px-4 py-8 md:px-6 lg:px-10">
-        {children}
+        <DashboardProviders>{children}</DashboardProviders>
       </div>
     </div>
   )

@@ -6,6 +6,10 @@ import {
   SparklesIcon,
   UtensilsIcon,
 } from "lucide-react"
+import Link from "next/link"
+
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,
@@ -21,35 +25,72 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
+import { getUserClaims } from "@/lib/dal/auth"
+import { getCachedDailyRandomRecipe } from "@/lib/server/daily-recipe"
+import type { MealDbRandomRecipe } from "@/lib/types/recipetypes"
 
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
+export type RecipeDifficulty = "Easy" | "Medium" | "Hard"
 
-interface RecipeSuggestion {
-  name: string
-  description: string
-  cookTime: string
-  difficulty: "Easy" | "Medium" | "Hard"
+export interface RecipeSuggestion extends MealDbRandomRecipe {
+  difficulty: RecipeDifficulty
   totalIngredients: number
+  stepCount: number
 }
 
-// ---------------------------------------------------------------------------
-// Sub-components
-// ---------------------------------------------------------------------------
-
-const difficultyColor: Record<RecipeSuggestion["difficulty"], string> = {
-  Easy: "text-primary",
-  Medium: "text-warning",
-  Hard: "text-destructive",
+function deriveDifficulty(ingredientCount: number): RecipeDifficulty {
+  if (ingredientCount <= 8) return "Easy"
+  if (ingredientCount <= 14) return "Medium"
+  return "Hard"
 }
 
-function DifficultyIcon({ level }: { level: RecipeSuggestion["difficulty"] }) {
+function toRecipeSuggestion(recipe: MealDbRandomRecipe): RecipeSuggestion {
+  return {
+    ...recipe,
+    totalIngredients: recipe.ingredients.length,
+    stepCount: recipe.instructions.length,
+    difficulty: deriveDifficulty(recipe.ingredients.length),
+  }
+}
+
+function instructionPreview(instructions: string[], maxSteps = 2): string {
+  const preview = instructions
+    .slice(0, maxSteps)
+    .map((step) => step.trim())
+    .filter(Boolean)
+    .join(" ")
+
+  return preview || "Open the recipe for full instructions."
+}
+
+function formatCategoryLabel(category: string): string {
+  if (!category) return "Recipe"
+  return category.charAt(0).toUpperCase() + category.slice(1)
+}
+
+async function loadDailyRecipeSuggestion(): Promise<{
+  recipe: RecipeSuggestion | null
+  error: string | null
+}> {
+  const claims = await getUserClaims()
+  const userId = claims?.user.id
+  if (!userId) {
+    return { recipe: null, error: null }
+  }
+
+  try {
+    const raw = await getCachedDailyRandomRecipe(userId)
+    return { recipe: toRecipeSuggestion(raw), error: null }
+  } catch (err) {
+    const message =
+      err instanceof Error ? err.message : "Could not load today's recipe pick."
+    return { recipe: null, error: message }
+  }
+}
+
+function DifficultyIcon({ level }: { level: RecipeDifficulty }) {
   const count = level === "Easy" ? 1 : level === "Medium" ? 2 : 3
   return (
-    <span className={`flex items-center gap-0.5 ${difficultyColor[level]}`}>
+    <span className="flex items-center gap-0.5">
       {Array.from({ length: 3 }).map((_, i) => (
         <FlameIcon
           key={i}
@@ -60,15 +101,8 @@ function DifficultyIcon({ level }: { level: RecipeSuggestion["difficulty"] }) {
   )
 }
 
-// ---------------------------------------------------------------------------
-// Main card
-// ---------------------------------------------------------------------------
-
-export function ChefAceCard({
-  recipe,
-}: {
-  recipe?: RecipeSuggestion | null
-}) {
+export async function ChefAceCard() {
+  const { recipe, error } = await loadDailyRecipeSuggestion()
   const hasRecipe = recipe != null
 
   return (
@@ -89,7 +123,7 @@ export function ChefAceCard({
             </Badge>
           ) : (
             <Badge variant="outline" className="shrink-0 text-xs">
-              Coming soon
+              {error ? "Unavailable" : "Sign in required"}
             </Badge>
           )}
         </div>
@@ -98,18 +132,31 @@ export function ChefAceCard({
       {hasRecipe ? (
         <>
           <CardContent className="flex flex-1 flex-col gap-4">
-            <div className="flex flex-col gap-1.5">
+            <div className="flex flex-col gap-2">
               <h3 className="text-base leading-tight font-semibold">
-                {recipe.name}
+                {recipe.title}
               </h3>
-              <p className="text-sm leading-relaxed text-muted-foreground">
-                {recipe.description}
+              <p className="line-clamp-3 text-sm leading-relaxed text-muted-foreground">
+                {instructionPreview(recipe.instructions)}
               </p>
 
-              <div className="mt-1 flex flex-wrap items-center gap-2">
-                <Badge variant="outline" className="gap-1.5 text-xs">
-                  <ClockIcon className="size-3" />
-                  {recipe.cookTime}
+              {recipe.tags.length > 0 ? (
+                <div className="flex flex-wrap gap-1.5">
+                  {recipe.tags.slice(0, 3).map((tag) => (
+                    <Badge
+                      key={tag}
+                      variant="secondary"
+                      className="text-[10px] font-normal capitalize"
+                    >
+                      {tag}
+                    </Badge>
+                  ))}
+                </div>
+              ) : null}
+
+              <div className="mt-0.5 flex flex-wrap items-center gap-2">
+                <Badge variant="outline" className="gap-1.5 text-xs capitalize">
+                  {formatCategoryLabel(recipe.category)}
                 </Badge>
                 <Badge variant="outline" className="gap-1.5 text-xs">
                   <DifficultyIcon level={recipe.difficulty} />
@@ -119,16 +166,22 @@ export function ChefAceCard({
                   <UtensilsIcon className="size-3" />
                   {recipe.totalIngredients} ingredients
                 </Badge>
+                <Badge variant="outline" className="gap-1.5 text-xs">
+                  <ClockIcon className="size-3" />
+                  {recipe.stepCount} steps
+                </Badge>
               </div>
             </div>
           </CardContent>
 
           <CardFooter className="flex flex-col gap-2">
-            <Button className="w-full" variant="default">
-              <UtensilsIcon data-icon="inline-start" />
-              Cook This
+            <Button className="w-full" variant="default" asChild>
+              <Link href={`/dashboard/recipes/${recipe.id}`}>
+                <UtensilsIcon data-icon="inline-start" />
+                Cook This
+              </Link>
             </Button>
-            <Button className="w-full" variant="outline">
+            <Button className="w-full" variant="outline" disabled>
               <BookmarkIcon data-icon="inline-start" />
               Save Recipe
             </Button>
@@ -141,10 +194,12 @@ export function ChefAceCard({
               <EmptyMedia variant="icon">
                 <ChefHatIcon className="size-4 text-muted-foreground" />
               </EmptyMedia>
-              <EmptyTitle>Not available in this build</EmptyTitle>
+              <EmptyTitle>
+                {error ? "Could not load daily pick" : "No recipe yet"}
+              </EmptyTitle>
               <EmptyDescription>
-                Chef ACE will be available in the next build—daily recipe picks
-                tailored to your pantry.
+                {error ??
+                  "Sign in to see a new random recipe inspiration each day, refreshed every 24 hours."}
               </EmptyDescription>
             </EmptyHeader>
           </Empty>

@@ -2,6 +2,10 @@ import { createBrowserClient } from "@supabase/ssr"
 
 function getRequiredPublicEnv(value: string | undefined, nameForError: string): string {
   if (!value) {
+    console.error(
+      `[supabase] Missing required environment variable: ${nameForError}. ` +
+        "Check your .env and restart the dev server."
+    )
     throw new Error(
       `Missing required environment variable: ${nameForError}. ` +
         "Your Supabase project's URL and publishable key are required to create a Supabase client."

@@ -2,8 +2,7 @@
 
 import * as React from "react"
 import { toast } from "sonner"
-import { useSWRConfig } from "swr"
-import { useRouter } from "next/navigation"
+import { revalidatePantryItems } from "@/lib/hooks/pantry-cache"
 import { Plus, Trash2, Wand2 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -29,7 +28,6 @@ import { Separator } from "@/components/ui/separator"
 import type { CategoryEnum, PantryItemInsert } from "@/lib/types/pantrytypes"
 import { CATEGORY_OPTIONS } from "@/lib/types/shoppingtypes"
 import { addBulkPantryItems } from "@/lib/api/pantry"
-import { MY_PANTRY_ITEMS_SWR_KEY } from "@/lib/hooks/use-my-pantry-items"
 
 type BulkRow = {
   id: string
@@ -155,8 +153,6 @@ export function BulkAddPantryItemsForm({
   onSuccess: () => void
   onItemAdded?: () => void
 }) {
-  const router = useRouter()
-  const { mutate } = useSWRConfig()
   const [isSubmitting, setIsSubmitting] = React.useState(false)
 
   const [rows, setRows] = React.useState<BulkRow[]>(() => [newRow()])
@@ -244,15 +240,14 @@ export function BulkAddPantryItemsForm({
       toast.success(`Added ${rows.length} item${rows.length === 1 ? "" : "s"} to pantry`)
       onItemAdded?.()
       onSuccess()
-      void mutate(MY_PANTRY_ITEMS_SWR_KEY)
-      router.refresh()
+      void revalidatePantryItems()
     } catch (error: unknown) {
       const err = error as Error
       toast.error(err.message)
     } finally {
       setIsSubmitting(false)
     }
-  }, [mutate, onItemAdded, onSuccess, router, rows])
+  }, [onItemAdded, onSuccess, rows])
 
   return (
     <div className="flex flex-col gap-4">

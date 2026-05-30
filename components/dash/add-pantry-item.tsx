@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { useSWRConfig } from "swr"
+import { revalidatePantryItems } from "@/lib/hooks/pantry-cache"
 import { useForm } from "@tanstack/react-form"
 import { toast } from "sonner"
 import { Plus, Trash2, Wand2 } from "lucide-react"
@@ -54,8 +54,6 @@ import type {
 import { CATEGORY_OPTIONS } from "@/lib/types/shoppingtypes"
 import { addBulkPantryItems, addPantryItem } from "@/lib/api/pantry"
 import { useMediaQuery } from "@/lib/hooks/use-media-query"
-import { useRouter } from "next/navigation"
-import { MY_PANTRY_ITEMS_SWR_KEY } from "@/lib/hooks/use-my-pantry-items"
 import { BulkAddPantryItemsForm } from "@/components/dash/bulk-add-pantry-items"
 
 type MobileWizardStep = "choose" | "single" | "bulk_import" | "bulk_review"
@@ -214,9 +212,6 @@ function useAddPantryItemMobileWizard(opts: {
   onItemAdded?: () => void
   onClose: () => void
 }) {
-  const router = useRouter()
-  const { mutate } = useSWRConfig()
-
   const [step, setStep] = React.useState<MobileWizardStep>(() =>
     opts.defaultTab === "bulk" ? "bulk_import" : "choose",
   )
@@ -309,15 +304,14 @@ function useAddPantryItemMobileWizard(opts: {
       toast.success(`Added ${rows.length} item${rows.length === 1 ? "" : "s"} to pantry`)
       opts.onItemAdded?.()
       close()
-      void mutate(MY_PANTRY_ITEMS_SWR_KEY)
-      router.refresh()
+      void revalidatePantryItems()
     } catch (error: unknown) {
       const err = error as Error
       toast.error(err.message)
     } finally {
       setIsSubmitting(false)
     }
-  }, [close, mutate, opts, router, rows])
+  }, [close, opts, rows])
 
   const footer = (() => {
     if (step === "choose") return null
@@ -626,8 +620,6 @@ function AddPantryItemForm({
   onSuccess: () => void
   onItemAdded?: () => void
 }) {
-  const router = useRouter()
-  const { mutate } = useSWRConfig()
   const [isSubmitting, setIsSubmitting] = React.useState(false)
 
   const form = useForm({
@@ -672,8 +664,7 @@ function AddPantryItemForm({
         toast.success("Item added to pantry")
         onItemAdded?.()
         onSuccess()
-        void mutate(MY_PANTRY_ITEMS_SWR_KEY)
-        router.refresh()
+        void revalidatePantryItems()
       } catch (error: unknown) {
         const err = error as Error
         toast.error(err.message)
