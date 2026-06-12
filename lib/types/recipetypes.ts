@@ -15,6 +15,9 @@ export interface RecipeWorkflowOutput {
   title: string;
   ingredients: string[];
   instructions: string[];
+  pantry_ingredients?: string[];
+  additional_ingredients?: string[];
+  pantry_coverage_note?: string | null;
 }
 
 /** POST `/recipes/generate-recipe` — `RecipeGenerationResult`. */
@@ -38,6 +41,9 @@ export interface RecipeDetailView {
   category?: string;
   tags?: string[];
   retrieved_context?: string[];
+  pantry_ingredients?: string[];
+  additional_ingredients?: string[];
+  pantry_coverage_note?: string | null;
 }
 
 /** GET `/recipes/` placeholder list response. */

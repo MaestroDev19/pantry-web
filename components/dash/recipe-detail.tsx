@@ -93,13 +93,16 @@ export function RecipeDetail({ recipe }: RecipeDetailProps) {
   const cleanedSteps = recipe.instructions
     .map((step) => {
       let cleaned = step.trim()
+      // Strip leading checkboxes, bullets, and symbols
+      cleaned = cleaned.replace(/^[▢☐☑☒•\-\*\+\s\u2022]+/u, "").trim()
+      cleaned = cleaned.replace(/^\[[\sXx]?\]\s*/, "").trim()
       const prefixMatch = cleaned.match(/^step\s*\d+\s*(?:\.|\:|\-)?\s*/i)
       if (prefixMatch) {
         cleaned = cleaned.slice(prefixMatch[0].length).trim()
       }
       return { original: step, cleaned }
     })
-    .filter((item) => item.cleaned.length > 0)
+    .filter((item) => item.cleaned.length > 0 && /[\p{L}\p{N}]/u.test(item.cleaned))
 
   // Checklist state for ingredients
   const [checkedIngredients, setCheckedIngredients] = useState<Set<string>>(new Set())
@@ -185,6 +188,10 @@ export function RecipeDetail({ recipe }: RecipeDetailProps) {
     }
   }, [timerActive, timerPaused, timeLeft])
 
+  const hasSplitIngredients =
+    (recipe.pantry_ingredients && recipe.pantry_ingredients.length > 0) ||
+    (recipe.additional_ingredients && recipe.additional_ingredients.length > 0)
+
   return (
     <div className="flex flex-1 flex-col gap-6 pt-4 md:pt-8 relative">
       {/* Back to recipes navigation row */}
@@ -213,29 +220,97 @@ export function RecipeDetail({ recipe }: RecipeDetailProps) {
               </Badge>
             </CardHeader>
             <CardContent className="p-4 space-y-0.5">
-              {recipe.ingredients.map((ingredient) => {
-                const isChecked = checkedIngredients.has(ingredient)
-                return (
-                  <label
-                    key={ingredient}
-                    className="flex items-start gap-3 p-3 rounded-xl hover:bg-muted/40 transition-colors cursor-pointer group"
-                  >
-                    <Checkbox
-                      checked={isChecked}
-                      onCheckedChange={() => toggleIngredient(ingredient)}
-                      className="mt-1"
-                    />
-                    <span
-                      className={cn(
-                        "flex-1 text-sm font-medium transition-colors text-foreground",
-                        isChecked && "line-through text-muted-foreground/60"
-                      )}
+              {hasSplitIngredients ? (
+                <div className="flex flex-col gap-4">
+                  {/* Pantry items — what they already have */}
+                  {recipe.pantry_ingredients && recipe.pantry_ingredients.length > 0 && (
+                    <div className="flex flex-col gap-2">
+                      <p className="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+                        ✓ In your pantry
+                      </p>
+                      {recipe.pantry_ingredients.map((ing) => (
+                        <div key={ing} className="flex items-center gap-3 p-1">
+                          <Checkbox
+                            id={ing}
+                            checked={checkedIngredients.has(ing)}
+                            onCheckedChange={() => toggleIngredient(ing)}
+                            className="border-emerald-400 data-[state=checked]:bg-emerald-500 data-[state=checked]:border-emerald-500"
+                          />
+                          <label
+                            htmlFor={ing}
+                            className={cn(
+                              "text-sm cursor-pointer select-none",
+                              checkedIngredients.has(ing) && "line-through text-muted-foreground"
+                            )}
+                          >
+                            {ing}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Additional items — needs shopping */}
+                  {recipe.additional_ingredients && recipe.additional_ingredients.length > 0 && (
+                    <div className="flex flex-col gap-2">
+                      <p className="text-xs font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">
+                        ⚠ You&apos;ll need to buy
+                      </p>
+                      {recipe.additional_ingredients.map((ing) => (
+                        <div key={ing} className="flex items-center gap-3 p-1">
+                          <Checkbox
+                            id={ing}
+                            checked={checkedIngredients.has(ing)}
+                            onCheckedChange={() => toggleIngredient(ing)}
+                            className="border-amber-400 data-[state=checked]:bg-amber-500 data-[state=checked]:border-amber-500"
+                          />
+                          <label
+                            htmlFor={ing}
+                            className={cn(
+                              "text-sm cursor-pointer select-none text-amber-700 dark:text-amber-300",
+                              checkedIngredients.has(ing) && "line-through text-muted-foreground"
+                            )}
+                          >
+                            {ing}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Coverage note — when pantry doesn't match the request */}
+                  {recipe.pantry_coverage_note && (
+                    <div className="flex items-start gap-2 p-3 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-700 dark:text-amber-300 text-xs leading-relaxed">
+                      <LightbulbIcon className="size-3.5 mt-0.5 shrink-0" />
+                      {recipe.pantry_coverage_note}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                recipe.ingredients.map((ingredient) => {
+                  const isChecked = checkedIngredients.has(ingredient)
+                  return (
+                    <label
+                      key={ingredient}
+                      className="flex items-start gap-3 p-3 rounded-xl hover:bg-muted/40 transition-colors cursor-pointer group"
                     >
-                      {ingredient}
-                    </span>
-                  </label>
-                )
-              })}
+                      <Checkbox
+                        checked={isChecked}
+                        onCheckedChange={() => toggleIngredient(ingredient)}
+                        className="mt-1"
+                      />
+                      <span
+                        className={cn(
+                          "flex-1 text-sm font-medium transition-colors text-foreground",
+                          isChecked && "line-through text-muted-foreground/60"
+                        )}
+                      >
+                        {ingredient}
+                      </span>
+                    </label>
+                  )
+                })
+              )}
 
               <div className="pt-4 px-3">
                 <Button
