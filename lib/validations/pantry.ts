@@ -1,25 +1,6 @@
 import { z } from "zod"
 
-const UNIT_ENUM = z.enum([
-  "kg",
-  "g",
-  "mg",
-  "lb",
-  "oz",
-  "L",
-  "mL",
-  "gal",
-  "cup",
-  "tbsp",
-  "tsp",
-  "pieces",
-  "items",
-  "can",
-  "bottle",
-  "box",
-  "bag",
-  "pack",
-] as const)
+
 
 export const addItemSchema = z.object({
   name: z.string().min(1, { message: "Name is required" }),
@@ -37,7 +18,6 @@ export const addItemSchema = z.object({
     "Other",
   ] as const),
   quantity: z.number().min(1, { message: "Quantity is required" }),
-  unit: UNIT_ENUM.optional(),
   expiry_date: z.string(),
   expiry_visible: z.boolean(),
 })

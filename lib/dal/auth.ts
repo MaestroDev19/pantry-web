@@ -77,6 +77,15 @@ export const getSessionToken = cache(
 	async (): Promise<SessionTokenResponse> => {
 		const supabase = await createClient()
 		try {
+			const { data: { user }, error: userError } = await supabase.auth.getUser()
+			if (userError || !user) {
+				return {
+					ok: false,
+					message: userError?.message ?? 'Invalid user session',
+					redirect: '/',
+				}
+			}
+
 			const {
 				data: { session },
 				error,

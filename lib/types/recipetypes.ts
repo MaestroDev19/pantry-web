@@ -65,7 +65,6 @@ export interface MealDbRandomRecipe {
 export interface GeminiRecipeJson {
   title?: string;
   ingredients?: string[];
-  ing?: string[];
   instructions?: string[];
   steps?: string[];
 }

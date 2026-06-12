@@ -27,6 +27,10 @@ async function proxy(
   request: NextRequest,
   slugParts: string[],
 ): Promise<NextResponse> {
+  if (slugParts.some(part => part.includes("..") || part.includes("/") || part.includes("\\"))) {
+    return new NextResponse("Invalid path parameter", { status: 400 })
+  }
+
   const upstream = getPantryUpstreamOrigin()
   const pathSuffix = slugParts.filter(Boolean).join("/")
   const targetPath = pathSuffix

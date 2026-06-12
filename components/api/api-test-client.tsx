@@ -250,7 +250,6 @@ export default function ApiTestClient() {
                   {
                     name: "Test Worker Item",
                     quantity: 1,
-                    unit: "piece",
                     category: "other",
                   },
                   null,

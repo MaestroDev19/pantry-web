@@ -15,14 +15,14 @@ import {
 } from "@/lib/utils/recipe-detail"
 
 /** Store a RAG / generate-recipe result and return the normalized detail view. */
-export function rememberGeneratedRecipe(
+export async function rememberGeneratedRecipe(
   userId: string,
   result: RecipeGenerationResult,
   recipeId?: string,
-): RecipeDetailView {
+): Promise<RecipeDetailView> {
   const id = recipeId ?? `gen-${crypto.randomUUID()}`
   const recipe = toRecipeDetailFromGenerated(id, result)
-  rememberUserRecipe(userId, recipe)
+  await rememberUserRecipe(userId, recipe)
   return recipe
 }
 
@@ -39,7 +39,7 @@ export async function resolveRecipeById(
     return toRecipeDetailFromDummy(dummy)
   }
 
-  const remembered = getRememberedUserRecipe(userId, recipeId)
+  const remembered = await getRememberedUserRecipe(userId, recipeId)
   if (remembered) {
     return remembered
   }
@@ -47,7 +47,7 @@ export async function resolveRecipeById(
   try {
     const daily = await getCachedDailyRandomRecipe(userId)
     const view = toRecipeDetailFromMealDb(daily)
-    rememberUserRecipe(userId, view)
+    await rememberUserRecipe(userId, view)
 
     if (recipeMatchesId(daily, recipeId)) {
       return view

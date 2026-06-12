@@ -7,7 +7,6 @@ export interface PantryItem {
   name: string;
   category: CategoryEnum;
   quantity: number | null;
-  unit: UnitEnum | null | string;
   expiry_date: string | null;
   expiry_visible: boolean | null;
   created_at: string | null;
@@ -21,7 +20,6 @@ export interface PantryItemInsert {
   name: string;
   category: CategoryEnum;
   quantity?: number | null;
-  unit?: UnitEnum | null | string;
   expiry_date?: string | null;
   expiry_visible?: boolean | null;
   created_at?: string | null;
@@ -34,7 +32,6 @@ export interface PantryItemUpdate {
   name?: string;
   category?: CategoryEnum;
   quantity?: number | null;
-  unit?: UnitEnum | null | string;
   expiry_date?: string | null;
   expiry_visible?: boolean | null;
   updated_at?: string | null;

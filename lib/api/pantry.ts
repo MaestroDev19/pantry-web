@@ -7,7 +7,6 @@ import type {
   PantryItem,
   PantryItemInsert,
   PantryItemUpdate,
-  UnitEnum,
 } from "@/lib/types/pantrytypes"
 import { RECIPES_RANDOM_PATH } from "@/lib/types/recipetypes"
 import type { MealDbRandomRecipe } from "@/lib/types/recipetypes"
@@ -32,40 +31,13 @@ const UI_TO_API_CATEGORY: Record<CategoryEnum, string> = {
   Other: "other",
 }
 
-/** Maps UI units to FastAPI `UnitEnum` string values. */
-const UI_TO_API_UNIT: Record<UnitEnum, string> = {
-  kg: "kilogram",
-  g: "gram",
-  mg: "gram",
-  lb: "kilogram",
-  oz: "gram",
-  L: "liter",
-  mL: "milliliter",
-  gal: "liter",
-  cup: "cup",
-  tbsp: "tablespoon",
-  tsp: "teaspoon",
-  pieces: "piece",
-  items: "piece",
-  can: "piece",
-  bottle: "piece",
-  box: "piece",
-  bag: "piece",
-  pack: "piece",
-}
+
 
 function mapInsertToApiBody(input: PantryItemInsert): Record<string, unknown> {
-  const rawUnit = input.unit ?? ("pieces" as const)
-  const apiUnit =
-    typeof rawUnit === "string" && rawUnit in UI_TO_API_UNIT
-      ? UI_TO_API_UNIT[rawUnit as UnitEnum]
-      : "piece"
-
   const body: Record<string, unknown> = {
     name: input.name,
     category: UI_TO_API_CATEGORY[input.category],
     quantity: input.quantity ?? 1,
-    unit: apiUnit,
   }
 
   if (input.expiry_date) {
@@ -157,13 +129,6 @@ function mapUpdateToApiBody(input: PantryItemUpdate): Record<string, unknown> {
   }
   if (input.quantity != null) {
     body.quantity = input.quantity
-  }
-  if (input.unit != null) {
-    const rawUnit = input.unit
-    body.unit =
-      typeof rawUnit === "string" && rawUnit in UI_TO_API_UNIT
-        ? UI_TO_API_UNIT[rawUnit as UnitEnum]
-        : "piece"
   }
   if (input.expiry_date !== undefined) {
     body.expiry_date = input.expiry_date || null
