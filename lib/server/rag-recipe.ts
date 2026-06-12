@@ -66,11 +66,17 @@ export async function generateRecipeWithAI(
         const {
             data: { user },
         } = await supabase.auth.getUser()
-        if (user?.id) {
-            await rememberUserRecipe(user.id, cleanedData)
+        if (!user?.id) {
+            throw new Error("User session not found. Please sign in again.")
         }
+        await rememberUserRecipe(user.id, cleanedData)
     } catch (err) {
-        console.warn("[rag-recipe] Could not persist generated recipe to cache:", err)
+        console.error("[rag-recipe] Could not persist generated recipe:", err)
+        throw new Error(
+            err instanceof Error
+                ? err.message
+                : "Unable to save generated recipe to database."
+        )
     }
 
     return cleanedData

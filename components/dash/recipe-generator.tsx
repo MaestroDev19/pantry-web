@@ -39,7 +39,6 @@ export function RecipeGenerator({ accessToken }: RecipeGeneratorProps) {
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null
     if (loading) {
-      setStageIndex(0)
       interval = setInterval(() => {
         setStageIndex((prev) => (prev + 1) % LOADING_STAGES.length)
       }, 3000)
@@ -58,6 +57,7 @@ export function RecipeGenerator({ accessToken }: RecipeGeneratorProps) {
       return
     }
 
+    setStageIndex(0)
     setLoading(true)
     setError(null)
 

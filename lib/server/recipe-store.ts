@@ -36,14 +36,16 @@ export async function rememberUserRecipe(
       )
 
     if (error) {
-      console.warn(
-        `[recipe-store] Supabase persist failed: ${error.message}. Falling back to in-memory cache.`
+      console.error(
+        `[recipe-store] Supabase persist failed: ${error.message}`
       )
+      throw new Error(`Failed to persist recipe to database: ${error.message}`)
     }
   } catch (err) {
-    console.warn(
-      `[recipe-store] Failed to connect to Supabase: ${err}. Falling back to in-memory cache.`
+    console.error(
+      `[recipe-store] Failed to connect/persist to Supabase: ${err}`
     )
+    throw err
   }
 }
 
